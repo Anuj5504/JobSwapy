@@ -1,7 +1,7 @@
-import React,{ useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useJobContext } from '../context/JobContext';
 import SwipeableJobStack from '../components/SwipeableJobStack';
+import { useJobContext } from '../context/JobContext';
 
 function SwipeInterface() {
   const { filters, updateFilters } = useJobContext();

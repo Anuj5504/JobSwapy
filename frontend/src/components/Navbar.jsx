@@ -1,14 +1,68 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import DarkModeToggle from './DarkModeToggle';
+import { useJobContext } from '../context/JobContext';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { savedJobs, appliedJobs, viewedJobs } = useJobContext();
   
+  // Handle authentication state
+  useEffect(() => {
+    // Check for user in localStorage (or your auth state management)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Error parsing stored user data', e);
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  // Handle scroll state for navbar styling
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle logout
+  const handleLogout = () => {
+    // Clear user from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Update state
+    setUser(null);
+    setUserMenuOpen(false);
+    setIsMenuOpen(false);
+    
+    // Navigate to home page
+    navigate('/');
+  };
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 shadow-gray-300 dark:shadow-gray-800">
+    <nav 
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+        isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md' : 'bg-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -61,66 +115,140 @@ function Navbar() {
                 </div>
               </Link>
 
-              
-                <div className="flex items-center space-x-2">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  <span className='text-white'>Applied Jobs</span>
-                </div>
-             
-              
+              {/* Saved Jobs - Only show if user is logged in */}
+              {user && (
+                <Link 
+                  to="/saved" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
+                    ${location.pathname === '/saved'
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    <span>Saved ({savedJobs.length})</span>
+                  </div>
+                </Link>
+              )}
+
+              {/* Applied Jobs - Only show if user is logged in */}
+              {user && (
+                <Link 
+                  to="/applied" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
+                    ${location.pathname === '/applied'
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>Applied ({appliedJobs.length})</span>
+                  </div>
+                </Link>
+              )}
             </div>
 
-           
+            <DarkModeToggle />
 
-            {/* User Menu - Desktop */}
-            <div className="relative">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-1 rounded-full text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-white focus:outline-none"
-              >
-                <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                  JS
-                </div>
-              </motion.button>
+            {/* Authentication options for desktop */}
+            {user ? (
+              /* User Menu - Desktop */
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="p-1 rounded-full text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-white focus:outline-none"
+                >
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium overflow-hidden">
+                    {user.photoURL ? (
+                      <img 
+                        src={user.photoURL} 
+                        alt={user.name || 'User'} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-blue-600 text-white w-full h-full flex items-center justify-center">
+                        {user.name ? user.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'U')}
+                      </div>
+                    )}
+                  </div>
+                </motion.button>
 
-              <AnimatePresence>
-                {isMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5"
-                  >
-                    <div className="py-1">
-                      <Link 
-                        to="/profile" 
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Your Profile
-                      </Link>
-                      <Link 
-                        to="/settings" 
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Settings
-                      </Link>
-                      <button 
-                        className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                <AnimatePresence>
+                  {isMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5"
+                    >
+                      <div className="py-1">
+                        {user.name || user.email ? (
+                          <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                            <div className="font-medium truncate">{user.name || 'User'}</div>
+                            {user.email && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                                {user.email}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                        
+                        <Link 
+                          to="/profile" 
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Your Profile
+                        </Link>
+                        <Link 
+                          to="/settings" 
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Settings
+                        </Link>
+                        <button 
+                          className="w-full text-left block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={handleLogout}
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              /* Login/Signup buttons for non-authenticated users */
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Log in
+                </Link>
+                
+                <Link
+                  to="/signup"
+                  className="px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-colors"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center md:hidden">
-            {/* <DarkModeToggle /> */}
+            <DarkModeToggle />
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -173,30 +301,72 @@ function Navbar() {
               >
                 Browse Jobs
               </Link>
-             
-              <Link
-                to="/profile"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Your Profile
-              </Link>
-              <Link
-                to="/settings"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Settings
-              </Link>
-              <button
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  // Add sign out logic here
-                }}
-              >
-                Sign out
-              </button>
+              
+              {/* Conditional Menu Items - Only show if logged in */}
+              {user ? (
+                <>
+                  <Link
+                    to="/saved"
+                    className={`block px-3 py-2 rounded-md text-base font-medium ${
+                      location.pathname === '/saved'
+                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Saved Jobs ({savedJobs.length})
+                  </Link>
+                  <Link
+                    to="/applied"
+                    className={`block px-3 py-2 rounded-md text-base font-medium ${
+                      location.pathname === '/applied'
+                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Applied Jobs ({appliedJobs.length})
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Your Profile
+                  </Link>
+                  <Link
+                    to="/settings"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={handleLogout}
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                /* Login/Signup options for mobile */
+                <div className="pt-2 space-y-2">
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="block px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

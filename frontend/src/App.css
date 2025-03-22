@@ -1,0 +1,46 @@
+/* Base styles */
+body {
+  background-color: #f5f7fa;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.app-container {
+  min-height: 100vh;
+}
+
+/* Job card swipe animations */
+.job-card {
+  user-select: none;
+  touch-action: pan-y;
+  cursor: pointer;
+  border: 1px solid #eaeaea;
+  min-height: 360px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* For WebKit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Line clamp for text truncation */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+} 

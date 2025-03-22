@@ -1,4 +1,3 @@
-import React from 'react';
 import { useJobContext } from '../context/JobContext';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
