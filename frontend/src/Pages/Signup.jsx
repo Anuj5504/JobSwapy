@@ -113,8 +113,9 @@ function Signup() {
         email: user.email,
         name: user.displayName,
         id: user.uid,
-        photoURL: user.photoURL,
-        registrationComplete: false
+        photoURL: response.data.user.photoURL,
+        authType: response.data.user.authType,
+        registrationComplete: response.data.user.registrationComplete
       }));
       
       // Store token

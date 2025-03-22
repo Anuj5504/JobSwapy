@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const Job = require('../models/Job');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -50,6 +52,16 @@ router.post('/signup', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in signup:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// const Job = mongoose.model("jobs", new mongoose.Schema({}, { strict: false }));
+router.get('/get-all-jobs', async (req, res) => {
+  try {
+    const jobs = await Job.find({});
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error('Error in get-all-jobs:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

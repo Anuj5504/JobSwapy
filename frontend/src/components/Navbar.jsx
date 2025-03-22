@@ -116,7 +116,7 @@ function Navbar() {
               </Link>
 
               {/* Saved Jobs - Only show if user is logged in */}
-              {user && (
+              {user && user.registrationComplete && (
                 <Link 
                   to="/saved" 
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
@@ -135,7 +135,7 @@ function Navbar() {
               )}
 
               {/* Applied Jobs - Only show if user is logged in */}
-              {user && (
+              {user && user.registrationComplete && (
                 <Link 
                   to="/applied" 
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
@@ -157,7 +157,7 @@ function Navbar() {
             <DarkModeToggle />
 
             {/* Authentication options for desktop */}
-            {user ? (
+            {user && user.registrationComplete ? (
               /* User Menu - Desktop */
               <div className="relative">
                 <motion.button

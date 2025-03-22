@@ -58,20 +58,17 @@ function Login() {
         firebaseUid: user.uid
       });
 
-            // Store user info in localStorage
-            localStorage.setItem('user', JSON.stringify({
+        localStorage.setItem('user', JSON.stringify({
               email: user.email,
               name: user.displayName || email.split('@')[0],
               id: user.uid,
-              photoURL: user.photoURL,
-              authType: user.authType,
-              registrationComplete: user.registrationComplete
+              photoURL: response.data.user.photoURL,
+              authType: response.data.user.authType,
+              registrationComplete: response.data.user.registrationComplete
             }));
       
-            // Store the token from the response
-            localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', response.data.token);
       
-      // Check if registration is complete
       if (!response.data.user.registrationComplete) {
 
         console.log(response.data.user);
@@ -112,7 +109,9 @@ function Login() {
         email: user.email,
         name: user.displayName,
         id: user.uid,
-        photoURL: user.photoURL
+        photoURL: response.data.user.photoURL,
+        authType: response.data.user.authType,
+        registrationComplete: response.data.user.registrationComplete
       }));
 
       // Store the token from the response
