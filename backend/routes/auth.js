@@ -22,4 +22,8 @@ router.post(
   authController.uploadResume
 );
 
+router.get('/profile', authenticateToken, authController.getProfile);
+router.put('/profile', authenticateToken, authController.updateProfile);
+router.get('/getRecommendation/:id', authenticateToken, authController.getRecommendation);
+
 module.exports = router;

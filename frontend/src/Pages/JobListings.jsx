@@ -9,21 +9,28 @@ function JobListings() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('cards');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [paginationInfo, setPaginationInfo] = useState(null);
 
-  // Fetch jobs from API
+  // Fetch jobs from API with pagination
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await api.get('/api/auth/get-all-jobs');
-        console.log('API Response:', response.data);
+        setLoading(true);
+        const response = await api.get(`/api/jobs?page=${currentPage}&limit=20`);
         
-        if (!response.data || !Array.isArray(response.data)) {
+        if (!response.data || !response.data.data || !Array.isArray(response.data.data)) {
           console.error('Invalid API response format:', response.data);
           setJobs([]);
           return;
         }
 
-        const processedJobs = response.data.map(job => ({
+        // Process the pagination information
+        setPaginationInfo(response.data.pagination);
+        setTotalPages(response.data.pagination.pages);
+
+        const processedJobs = response.data.data.map(job => ({
           id: job._id,
           title: job.title || 'No title',
           company: job.company || 'No company',
@@ -37,7 +44,6 @@ function JobListings() {
           companyDetails: job.companyDetails || {}
         }));
         
-        console.log('Processed jobs:', processedJobs);
         setJobs(processedJobs);
       } catch (error) {
         console.error('Error fetching jobs:', error);
@@ -49,7 +55,13 @@ function JobListings() {
     };
 
     fetchJobs();
-  }, []);
+  }, [currentPage]); // Re-fetch when page changes
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleSaveJob = (job) => {
     saveJob({...job, savedDate: new Date().toISOString()});
@@ -57,6 +69,132 @@ function JobListings() {
   
   const handleViewJob = (jobId) => {
     markJobAsViewed(jobId);
+  };
+
+  // Render pagination controls
+  const renderPagination = () => {
+    if (!paginationInfo || paginationInfo.pages <= 1) return null;
+    
+    const pages = [];
+    // Always show first page
+    pages.push(
+      <button
+        key="first"
+        onClick={() => handlePageChange(1)}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 rounded ${
+          currentPage === 1
+            ? 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
+            : 'bg-white text-blue-600 dark:bg-gray-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+        }`}
+      >
+        1
+      </button>
+    );
+
+    // For many pages, add ellipsis and show pages around current page
+    if (paginationInfo.pages > 7) {
+      // Show dots after page 1 if current page is not close to the beginning
+      if (currentPage > 3) {
+        pages.push(
+          <span key="dots1" className="px-3 py-1">
+            ...
+          </span>
+        );
+      }
+
+      // Show pages around current page
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(paginationInfo.pages - 1, currentPage + 1);
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`px-3 py-1 rounded ${
+              currentPage === i
+                ? 'bg-blue-600 text-white dark:bg-blue-500'
+                : 'bg-white text-blue-600 dark:bg-gray-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+
+      // Show dots before last page if current page is not close to the end
+      if (currentPage < paginationInfo.pages - 2) {
+        pages.push(
+          <span key="dots2" className="px-3 py-1">
+            ...
+          </span>
+        );
+      }
+    } else {
+      // For fewer pages, show all page numbers
+      for (let i = 2; i < paginationInfo.pages; i++) {
+        pages.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`px-3 py-1 rounded ${
+              currentPage === i
+                ? 'bg-blue-600 text-white dark:bg-blue-500'
+                : 'bg-white text-blue-600 dark:bg-gray-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+    }
+
+    // Always show last page if there's more than one page
+    if (paginationInfo.pages > 1) {
+      pages.push(
+        <button
+          key="last"
+          onClick={() => handlePageChange(paginationInfo.pages)}
+          disabled={currentPage === paginationInfo.pages}
+          className={`px-3 py-1 rounded ${
+            currentPage === paginationInfo.pages
+              ? 'bg-blue-600 text-white dark:bg-blue-500'
+              : 'bg-white text-blue-600 dark:bg-gray-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+          }`}
+        >
+          {paginationInfo.pages}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex justify-center items-center space-x-2 mt-8">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={!paginationInfo.hasPrevPage}
+          className={`px-3 py-1 rounded ${
+            !paginationInfo.hasPrevPage
+              ? 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
+              : 'bg-white text-blue-600 dark:bg-gray-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+          }`}
+        >
+          Previous
+        </button>
+        {pages}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={!paginationInfo.hasNextPage}
+          className={`px-3 py-1 rounded ${
+            !paginationInfo.hasNextPage
+              ? 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
+              : 'bg-white text-blue-600 dark:bg-gray-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700'
+          }`}
+        >
+          Next
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -77,7 +215,7 @@ function JobListings() {
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-gray-700 dark:text-gray-300 font-medium">
-              {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} found
+              {paginationInfo ? `${paginationInfo.total} total jobs, showing ${jobs.length}` : `${jobs.length} jobs found`}
             </span>
           </div>
           
@@ -272,6 +410,9 @@ function JobListings() {
             </AnimatePresence>
           </div>
         )}
+        
+        {/* Pagination */}
+        {!loading && jobs.length > 0 && renderPagination()}
       </div>
     </div>
   );

@@ -306,8 +306,28 @@ exports.uploadResume = async (req, res) => {
       'sql', 'mongodb', 'firebase', 'aws', 'azure', 'devops', 'docker',
       'kubernetes', 'git', 'agile', 'scrum', 'project management',
       'marketing', 'seo', 'social media', 'content writing', 'analytics',
-      'sales', 'customer service', 'leadership', 'communication'
+      'sales', 'customer service', 'leadership', 'communication',
+      'typescript', 'graphql', 'express', 'django', 'flask', 'spring boot',
+      'angular', 'vue', 'svelte', 'next.js', 'nuxt.js', 'tailwind css',
+      'bootstrap', 'sass', 'less', 'webpack', 'babel', 'redis', 'postgresql',
+      'oracle', 'sqlite', 'elasticsearch', 'cassandra', 'big data',
+      'hadoop', 'spark', 'data science', 'machine learning', 'deep learning',
+      'tensorflow', 'pytorch', 'nlp', 'computer vision', 'cybersecurity',
+      'ethical hacking', 'penetration testing', 'blockchain', 'smart contracts',
+      'solidity', 'web3', 'rest api', 'graphql api', 'microservices',
+      'cloud computing', 'ci/cd', 'terraform', 'ansible', 'puppet', 'chef',
+      'networking', 'linux', 'bash scripting', 'powershell', 'gitlab',
+      'jira', 'confluence', 'trello', 'figma', 'adobe xd', 'ui/ux design',
+      'wireframing', 'prototyping', 'a/b testing', 'copywriting',
+      'email marketing', 'ppc advertising', 'facebook ads', 'google ads',
+      'crm', 'erp', 'sap', 'business analysis', 'financial modeling',
+      'risk management', 'time management', 'negotiation', 'public speaking',
+      'emotional intelligence', 'team collaboration', 'conflict resolution',
+      'event planning', 'supply chain management', 'e-commerce', 'dropshipping',
+      'affiliate marketing', 'wordpress', 'shopify', 'wix', 'video editing',
+      'animation', '3d modeling', 'game development', 'unity', 'unreal engine'
     ];
+    
     
     const skills = commonSkills.filter(skill => 
       resumeText.toLowerCase().includes(skill)
@@ -315,11 +335,39 @@ exports.uploadResume = async (req, res) => {
     
     // Basic interests extraction
     const commonInterests = [
-      'web development', 'mobile development', 'data science', 'machine learning',
-      'artificial intelligence', 'cloud computing', 'cybersecurity', 'blockchain',
-      'iot', 'ui/ux', 'graphic design', 'digital marketing', 'content creation',
-      'business analysis', 'finance', 'healthcare', 'education', 'environment'
-    ];
+        'software architecture', 'system design', 'api development', 'backend development', 
+        'frontend development', 'full-stack development', 'progressive web apps', 
+        'serverless computing', 'microservices architecture', 'database administration', 
+        'big data analytics', 'data engineering', 'data visualization', 'natural language processing', 
+        'reinforcement learning', 'predictive analytics', 'quantum computing', 'bioinformatics', 
+        'edge computing', 'computer networking', 'ethical hacking', 'penetration testing', 
+        'digital forensics', 'security operations', 'risk assessment', 'network security', 
+        'cryptography', 'identity and access management', 'cloud security', 'zero trust architecture', 
+        'smart contract development', 'decentralized finance (DeFi)', 'tokenomics', 
+        'nft development', 'metaverse development', 'ar/vr development', 'game programming', 
+        'computer graphics', '3d rendering', 'motion graphics', 'vfx', 'video production', 
+        'animation', 'storyboarding', 'brand identity design', 'typography', 'illustration', 
+        'industrial design', 'automotive design', 'fashion design', 'interior design', 
+        'architecture', 'urban planning', 'mechanical engineering', 'electrical engineering', 
+        'civil engineering', 'robotics', 'embedded systems', 'hardware design', 
+        'internet security', 'automation testing', 'performance testing', 'unit testing', 
+        'test-driven development', 'behavior-driven development', 'release management', 
+        'configuration management', 'version control', 'continuous integration', 
+        'continuous deployment', 'agile methodologies', 'scrum master', 'kanban', 
+        'lean startup', 'product management', 'business intelligence', 'market research', 
+        'growth hacking', 'public relations', 'advertising', 'event management', 
+        'customer relationship management', 'lead generation', 'account management', 
+        'strategic planning', 'investment analysis', 'portfolio management', 
+        'corporate finance', 'supply chain optimization', 'logistics management', 
+        'procurement', 'e-commerce strategy', 'dropshipping', 'affiliate marketing', 
+        'youtube content creation', 'podcasting', 'social media strategy', 'influencer marketing', 
+        'copywriting', 'screenwriting', 'creative writing', 'journalism', 'editing', 
+        'translation', 'language teaching', 'psychology', 'sociology', 'philosophy', 
+        'history', 'political science', 'law', 'human rights', 'sports science', 
+        'nutrition', 'dietary planning', 'personal training', 'physiotherapy', 
+        'mental health counseling', 'public health', 'epidemiology', 'biotechnology'
+      ];
+      
     
     const interests = commonInterests.filter(interest => 
       resumeText.toLowerCase().includes(interest)
@@ -354,3 +402,132 @@ exports.uploadResume = async (req, res) => {
 };
 
 exports.uploadMiddleware = upload.single('resume');
+
+// Get user profile
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        photoURL: user.photoURL,
+        skills: user.skills || [],
+        interests: user.interests || [],
+        registrationComplete: user.registrationComplete
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching profile' 
+    });
+  }
+};
+
+// Update user profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, photoURL, skills, interests } = req.body;
+    
+    // Debug logging
+    console.log('Update Profile Request Body:', req.body);
+    console.log('User ID:', req.userId);
+    console.log('Skills:', skills);
+    console.log('Interests:', interests);
+    
+    // Create update object with proper handling for arrays
+    const updateData = {
+      ...(name !== undefined && { name }),
+      ...(photoURL !== undefined && { photoURL })
+    };
+    
+    // Always set skills and interests arrays, whether empty or not
+    updateData.skills = Array.isArray(skills) ? skills : [];
+    updateData.interests = Array.isArray(interests) ? interests : [];
+    
+    console.log('Update data being sent to MongoDB:', updateData);
+    
+    // Find user and update
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $set: updateData },
+      { new: true }
+    );
+    
+    // Debug the updated user
+    console.log('Updated User:', updatedUser);
+    
+    if (!updatedUser) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        photoURL: updatedUser.photoURL,
+        skills: updatedUser.skills || [],
+        interests: updatedUser.interests || [],
+        registrationComplete: updatedUser.registrationComplete
+      }
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while updating profile' 
+    });
+  }
+};
+
+exports.getRecommendation = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: "User not found" 
+      });
+    }
+    
+    const Job = require('../models/Job');
+    
+    const recommendations = await Job.find({
+      $or: [
+        { skills: { $in: user.skills } },
+        { $or: user.skills.map(skill => ({ title: { $regex: skill, $options: "i" } })) }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      recommendations
+    });
+
+  } catch (error) {
+    console.error('Error getting recommendations:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed fetching recommendations" 
+    });
+  }
+};
+

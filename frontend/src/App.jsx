@@ -36,13 +36,33 @@ function App() {
               } />
               <Route path="/jobs" element={<JobListings />} />
               <Route path="/job/:id" element={<JobDetails />} />
-              <Route path="/saved" element={<SavedJobs />} />
-              <Route path="/applied" element={<AppliedJobs />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/saved" element={
+                <ProtectedRoute>
+                  <SavedJobs />
+                </ProtectedRoute>
+              } />
+              <Route path="/applied" element={
+                <ProtectedRoute>
+                  <AppliedJobs />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/resume-upload" element={<ResumeUpload />} />
+              <Route path="/resume-upload" element={
+                <ProtectedRoute>
+                  <ResumeUpload />
+                </ProtectedRoute>
+              } />
             </Routes>
           </main>
           <ToastContainer 
