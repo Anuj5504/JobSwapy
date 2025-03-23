@@ -19,7 +19,7 @@ Jobswpy is a job portal that aggregates job listings from various platforms like
 7. *Google & Email Login* - Users can log in using Google authentication or sign up with an email and password.
 8. *Advanced Job Filters* - Users can filter jobs by category, location, salary range, and more.
 
-![Jobswpy Dashboard](./frontend/assets/flowchart.png)
+![Jobswpy Dashboard](./frontend/assets/flowchart.jpg)
 ## Inspiration
 Searching for jobs across multiple platforms can be time-consuming and inefficient. Jobswpy addresses this challenge by aggregating job listings and providing personalized recommendations. By leveraging automation and smart filtering, we streamline the job search process for job seekers, making it easier to find relevant opportunities.
 
@@ -38,8 +38,8 @@ Jobswpy is a job portal that simplifies job searching through automation and sma
 ## User Access
 Users can sign up and log in to the platform using Google authentication or email and password to browse and apply for jobs.
 ## Signup and Login
-![Jobswpy Dashboard](./frontend/assets/signup.png)
-![Jobswpy Dashboard](./frontend/assets/login.png)
+![Jobswpy Dashboard](./frontend/assets/signup.jpg)
+![Jobswpy Dashboard](./frontend/assets/login.jpg)
 
 ### Job Seeker Dashboard
 - Upload and manage resumes.
@@ -50,16 +50,16 @@ Users can sign up and log in to the platform using Google authentication or emai
 - Use advanced filters to find jobs that match their preferences.
 
 ## Browse Jobs
-![Jobswpy Dashboard](./frontend/assets/BrowseJobs.png)
+![Jobswpy Dashboard](./frontend/assets/BrowseJobs.jpg)
 
 ## Swipe Jobs
-![Jobswpy Dashboard](./frontend/assets/swipe.png)
+![Jobswpy Dashboard](./frontend/assets/swipe.jpg)
 
 ## Dashboard
 After login, users access their personalized dashboards:
 ## User Dashboard
-![Jobswpy Dashboard](./frontend/assets/userDashboard.png)
-![Jobswpy Dashboard](./frontend/assets/userDashbaord2.png)
+![Jobswpy Dashboard](./frontend/assets/userDashboard.jpg)
+![Jobswpy Dashboard](./frontend/assets/userDashboard2.jpg)
 
 
 ## 🧭 Tech Stack
@@ -90,12 +90,12 @@ After login, users access their personalized dashboards:
 
 ## 🚀 Getting Started Locally
 ### 1. Clone the Repository
-sh
 git clone https://github.com/Anuj5504/TLE-BlueBit.git
+
 cd jobswpy
 
 
-### 2. Configure Environment Variables
+### 2. Configure Environment Variables in Backend 
 Create a .env file in the root directory and include the following:
 sh
 MONGO_URI=your_mongodb_uri
@@ -108,20 +108,37 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 
-### 3. Backend Setup
-sh
+
+### 3. Configure Environment Variables in Frontend
+
+VITE_API_URL=http://localhost:5000
+
+VITE_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN=YOUR_FIREBASE_AUTH_KEY
+VITE_FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET=YOURFIREBASE_STORAGE_BUCKET
+VITE_FIREBASE_MESSAGING_SENDER_ID=YOUR_FIREBASE_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
+
+
+### 4. Backend Setup
+```sh
 cd backend   
 npm install
 npm run start
+```
+
 
 Ensure all dependencies are installed. If errors occur, double-check your environment and installed packages.
 
-### 4. Frontend Setup
-sh
+### 5. Frontend Setup
+```sh
 cd frontend
 npm install
-npm run dev
+npm run dev
+```
 
 
-### 5. Launch the Application
+
+### 6. Launch the Application
 Visit the following URL in your browser: [http://localhost:5173/](http://localhost:5173/)
