@@ -1,0 +1,163 @@
+.ai-apply-container {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 999999;
+}
+
+.ai-apply-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: #0066ff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+
+.ai-apply-btn:hover {
+  background: #0052cc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.ai-apply-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.ai-apply-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ai-apply-success {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  background: #10b981;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.ai-apply-error {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  background: #ef4444;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.ai-sidebar {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1a1c37;
+  padding: 15px 10px;
+  border-radius: 15px 0 0 15px;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  cursor: move;
+  user-select: none;
+}
+
+.ai-feature-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s;
+  font-size: 20px;
+}
+
+.ai-feature-btn:hover {
+  transform: scale(1.1);
+  background: #f0f0f0;
+}
+
+.ai-icon {
+  transition: all 0.3s;
+}
+
+.ai-tooltip {
+  position: absolute;
+  right: 50px;
+  background: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s;
+  pointer-events: none;
+}
+
+.ai-feature-btn:hover .ai-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ai-message {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  animation: slideIn 0.3s ease-out;
+  z-index: 2147483647;
+}
+
+.ai-message.success { background: #10b981; }
+.ai-message.error { background: #ef4444; }
+.ai-message.warning { background: #f59e0b; }
+
+.fade-out {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+} 

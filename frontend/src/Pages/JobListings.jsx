@@ -402,7 +402,7 @@ function JobListings() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {job.postedDate} • {job.source}
+                        {job.source}
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job.title}</h3>

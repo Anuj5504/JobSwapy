@@ -10,7 +10,7 @@ const { triggerJobNotifications } = require('../utils/jobNotificationService');
 // Public routes
 router.get('/',jobController.getJobs);
 router.get('/similar/:id', jobController.getSimilarJobs);
-router.get('/:id', authenticateToken,jobController.getJobById);
+router.get('/:id',jobController.getJobById);
 
 router.get('/getRecommendation/:id', async (req, res) => {
     try {
