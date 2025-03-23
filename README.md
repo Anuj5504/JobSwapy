@@ -55,11 +55,19 @@ Users can sign up and log in to the platform using Google authentication or emai
 ## Swipe Jobs
 ![Jobswpy Dashboard](./frontend/assets/swipe.jpg)
 
+## Saved Jobs
+![Saved Jobs](./frontend/assets/savedjobs.png)
+
+
 ## Dashboard
 After login, users access their personalized dashboards:
 ## User Dashboard
 ![Jobswpy Dashboard](./frontend/assets/userDashboard.jpg)
 ![Jobswpy Dashboard](./frontend/assets/userDashboard2.jpg)
+
+## Job Recommendation Throught Email 
+![Jobswpy Dashboard](./frontend/assets/email.png)
+
 
 
 ## 🧭 Tech Stack
@@ -73,7 +81,7 @@ After login, users access their personalized dashboards:
 - Express.js
 - MongoDB
 - JWT Authentication
-- Web Scraping (Puppeteer / Scrapy)
+- Web crawler (All Jobs Platform)
 
 ## ✨ Key Features
 ### For Job Seekers:
