@@ -1,6 +1,8 @@
 const Job = require('../models/Job');
 
 // Get jobs with pagination
+
+
 exports.getJobs = async (req, res) => {
   try {
     // Parse pagination parameters
@@ -10,7 +12,7 @@ exports.getJobs = async (req, res) => {
 
     // Get jobs with pagination
     const jobs = await Job.find()
-      .sort({ createdAt: -1 }) // Sort by newest first
+      // .sort({ createdAt: -1 }) // Sort by newest first
       .skip(skip)
       .limit(limit);
 
@@ -38,6 +40,7 @@ exports.getJobs = async (req, res) => {
     });
   }
 };
+
 
 // Get job by ID
 exports.getJobById = async (req, res) => {

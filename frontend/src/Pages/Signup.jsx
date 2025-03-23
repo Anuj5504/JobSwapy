@@ -76,7 +76,7 @@ function Signup() {
       localStorage.setItem('user', JSON.stringify({
         email: user.email,
         name: name,
-        id: user.uid,
+        id: response.data.user.id,
         registrationComplete: false
       }));
       
@@ -112,7 +112,7 @@ function Signup() {
       localStorage.setItem('user', JSON.stringify({
         email: user.email,
         name: user.displayName,
-        id: user.uid,
+        id: response.data.user.id,
         photoURL: response.data.user.photoURL,
         authType: response.data.user.authType,
         registrationComplete: response.data.user.registrationComplete

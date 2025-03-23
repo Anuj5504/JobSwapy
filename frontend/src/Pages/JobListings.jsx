@@ -18,7 +18,11 @@ function JobListings() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/api/jobs?page=${currentPage}&limit=20`);
+        const user= JSON.parse(localStorage.getItem('user'));
+        console.log(user.id);
+        // const response = await api.get(`/api/jobs?page=${currentPage}&limit=20`);
+        const response = await api.get(`/api/jobs/getRecommendation/${user.id}?page=${currentPage}&limit=20`);
+
         
         if (!response.data || !response.data.data || !Array.isArray(response.data.data)) {
           console.error('Invalid API response format:', response.data);
