@@ -5,6 +5,7 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Job = require('../models/Job');
 const mongoose = require('mongoose');
+const { triggerJobNotifications } = require('../utils/jobNotificationService');
 
 // Public routes
 router.get('/',jobController.getJobs);
@@ -197,5 +198,43 @@ router.get('/swipe/:id', async (req, res) => {
     });
   }
 });
+// Trigger job notifications for all users with matching skills/interests
+router.post('/send-notifications', authenticateToken, async (req, res) => {
+  try {
+    // Optional: Check if user has admin privileges
+    // const user = await User.findById(req.userId);
+    // if (!user || !user.isAdmin) return res.status(403).json({ success: false, message: 'Unauthorized' });
+    
+    // Get the start time for checking new jobs
+    let startTime = null;
+    if (req.body.days) {
+      // If days parameter provided, get jobs from X days ago
+      const daysAgo = parseInt(req.body.days) || 7;
+      startTime = new Date();
+      startTime.setDate(startTime.getDate() - daysAgo);
+    } else if (req.body.startDate) {
+      // Or use specific start date if provided
+      startTime = new Date(req.body.startDate);
+    }
+    
+    // Trigger notifications and get results
+    const result = await triggerJobNotifications(startTime);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Job notifications triggered',
+      result
+    });
+  } catch (error) {
+    console.error('Error triggering job notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error triggering job notifications'
+    });
+  }
+});
+
+// Protected routes (if any)
+// router.post('/', authenticateToken, jobController.createJob);
 
 module.exports = router; 
