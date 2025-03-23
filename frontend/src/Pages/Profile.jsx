@@ -280,20 +280,7 @@ function Profile() {
             </div>
           </div>
           
-          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-              <span className="block text-2xl font-bold text-blue-600 dark:text-blue-400">{savedJobs.length}</span>
-              <span className="text-sm text-gray-600 dark:text-gray-300">Saved Jobs</span>
-            </div>
-            <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-              <span className="block text-2xl font-bold text-green-600 dark:text-green-400">{appliedJobs.length}</span>
-              <span className="text-sm text-gray-600 dark:text-gray-300">Applications</span>
-            </div>
-            <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
-              <span className="block text-2xl font-bold text-purple-600 dark:text-purple-400">{viewedJobs.length}</span>
-              <span className="text-sm text-gray-600 dark:text-gray-300">Viewed</span>
-            </div>
-          </div>
+         
           
           <div className="mt-8">
             <motion.button

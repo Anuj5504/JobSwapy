@@ -56,6 +56,9 @@ function JobListings() {
 
         if (user?.id) {
           response = await api.get(`/api/jobs/getRecommendation/${user.id}?${queryParams}`);
+
+          console.log(response.data);
+          
           setIsRecommended(true);
           try {
             const savedJobsResponse = await api.get(`/api/users/${user.id}/savedJobs`);
