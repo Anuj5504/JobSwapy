@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { publishAuthChange } from '../components/Navbar';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -67,24 +68,32 @@ function Signup() {
 
       // Store user data in MongoDB
       const response = await api.post('/api/auth/signup', {
-        name,
         email: user.email,
+        name,
         firebaseUid: user.uid
       });
       
-      // Store user info in localStorage with registrationComplete flag
+      // Store token and user info in localStorage
+      localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify({
-        email: user.email,
-        name: name,
-        id: response.data.user.id,
-        registrationComplete: false
+        id: response.data.user._id,
+        name: response.data.user.name,
+        email: response.data.user.email,
+        registrationComplete: response.data.user.registrationComplete
       }));
       
-      // Store token
-      localStorage.setItem('token', response.data.token);
+      toast.success('Account created successfully!');
       
       // Redirect to resume upload page instead of home
       navigate('/resume-upload');
+      
+      // Publish auth change
+      publishAuthChange({
+        id: response.data.user._id,
+        name: response.data.user.name,
+        email: response.data.user.email,
+        registrationComplete: response.data.user.registrationComplete
+      });
     } catch (error) {
       handleAuthError(error);
     } finally {
@@ -103,26 +112,36 @@ function Signup() {
       // Store Google user data in MongoDB
       const response = await api.post('/api/auth/google-signup', {
         email: user.email,
-        name: user.displayName,
+        name: user.displayName || email.split('@')[0],
         photoURL: user.photoURL,
         firebaseUid: user.uid
       });
-
-      // Store user info in localStorage with registrationComplete flag
+      
+      // Store user info in localStorage
       localStorage.setItem('user', JSON.stringify({
-        email: user.email,
-        name: user.displayName,
-        id: response.data.user.id,
+        id: response.data.user._id,
+        name: response.data.user.name,
+        email: response.data.user.email,
         photoURL: response.data.user.photoURL,
-        authType: response.data.user.authType,
         registrationComplete: response.data.user.registrationComplete
       }));
       
       // Store token
       localStorage.setItem('token', response.data.token);
       
+      toast.success('Account created successfully!');
+      
       // Redirect to resume upload
       navigate('/resume-upload');
+      
+      // Publish auth change
+      publishAuthChange({
+        id: response.data.user._id,
+        name: response.data.user.name,
+        email: response.data.user.email,
+        photoURL: response.data.user.photoURL,
+        registrationComplete: response.data.user.registrationComplete
+      });
     } catch (error) {
       handleAuthError(error);
     } finally {

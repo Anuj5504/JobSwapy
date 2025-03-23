@@ -441,13 +441,6 @@ exports.updateProfile = async (req, res) => {
   try {
     const { name, photoURL, skills, interests } = req.body;
     
-    // Debug logging
-    console.log('Update Profile Request Body:', req.body);
-    console.log('User ID:', req.userId);
-    console.log('Skills:', skills);
-    console.log('Interests:', interests);
-    
-    // Create update object with proper handling for arrays
     const updateData = {
       ...(name !== undefined && { name }),
       ...(photoURL !== undefined && { photoURL })
@@ -456,19 +449,14 @@ exports.updateProfile = async (req, res) => {
     // Always set skills and interests arrays, whether empty or not
     updateData.skills = Array.isArray(skills) ? skills : [];
     updateData.interests = Array.isArray(interests) ? interests : [];
-    
-    console.log('Update data being sent to MongoDB:', updateData);
-    
+        
     // Find user and update
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       { $set: updateData },
       { new: true }
     );
-    
-    // Debug the updated user
-    console.log('Updated User:', updatedUser);
-    
+        
     if (!updatedUser) {
       return res.status(404).json({ 
         success: false,

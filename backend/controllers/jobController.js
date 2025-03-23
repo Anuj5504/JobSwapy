@@ -75,3 +75,40 @@ exports.getJobById = async (req, res) => {
     });
   }
 }; 
+
+// Get similar jobs
+exports.getSimilarJobs = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    // Find similar jobs based on skills or title, excluding the current job
+    const similarJobs = await Job.find({
+      _id: { $ne: job._id }, // Exclude the current job
+      $or: [
+        { skills: { $in: job.skills } }, // Jobs with matching skills
+        { title: { $regex: job.title.split(' ').slice(0, 2).join('|'), $options: 'i' } } // Jobs with similar titles
+      ]
+    })
+    .limit(4) // Return only 4 similar jobs
+    .sort({ createdAt: -1 }); // Sort by newest first
+
+    res.status(200).json({
+      success: true,
+      count: similarJobs.length,
+      data: similarJobs
+    });
+  } catch (error) {
+    console.error('Error fetching similar jobs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching similar jobs'
+    });
+  }
+}; 
+

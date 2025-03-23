@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import JobCard from './JobCard';
 import TiltControls from './TiltControls';
 import GestureControls from './GestureControls';
-import { jobs } from '../data/sampleJobs';
-import { useJobContext } from '../context/JobContext';
 import Webcam from 'react-webcam';
+import api from '../services/api';
 
 function SwipeableJobStack({ filters }) {
   const [currentJobs, setCurrentJobs] = useState([]);
@@ -13,7 +12,7 @@ function SwipeableJobStack({ filters }) {
   const [loading, setLoading] = useState(true);
   const [isTiltEnabled, setIsTiltEnabled] = useState(false);
   const [isHandGestureEnabled, setIsHandGestureEnabled] = useState(false);
-  const { saveJob, markJobAsApplied, markJobAsViewed } = useJobContext();
+  const [saveNotification, setSaveNotification] = useState({ show: false, message: '', type: '' });
 
   // Hand gesture related states
   const [handModel, setHandModel] = useState(null);
@@ -22,53 +21,108 @@ function SwipeableJobStack({ filters }) {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Add debug state for troubleshooting
-  const [debug, setDebug] = useState([]);
-
-  // Apply filters and load jobs
+  // Clear notification after 2 seconds
   useEffect(() => {
-    setLoading(true);
+    if (saveNotification.show) {
+      const timer = setTimeout(() => {
+        setSaveNotification({ show: false, message: '', type: '' });
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [saveNotification]);
 
-    setTimeout(() => {
-      let filteredJobs = [...jobs];
+  // Fetch jobs from the database
+  useEffect(() => {
+    const fetchJobsForSwipe = async () => {
+      try {
+        setLoading(true);
 
-      // Apply filters
-      if (filters) {
-        // Filter by location
-        if (filters.location) {
-          const location = filters.location.toLowerCase();
-          filteredJobs = filteredJobs.filter(job =>
-            job.location.toLowerCase().includes(location)
-          );
+        // Get user from localStorage for personalized recommendations if logged in
+        const user = JSON.parse(localStorage.getItem('user'));
+        let response;
+
+        if (user && user.id) {
+          // Get personalized job recommendations
+          response = await api.get(`/api/jobs/swipe/${user.id}`);
+        } else {
+          // Get general job recommendations
+          response = await api.get('/api/jobs/swipe');
         }
 
-        // Other filters (add as needed)
-        if (filters.jobType) {
-          filteredJobs = filteredJobs.filter(job =>
-            job.title.toLowerCase().includes(filters.jobType.toLowerCase())
-          );
+        if (!response.data || !response.data.data || !Array.isArray(response.data.data)) {
+          console.error('Invalid API response format:', response.data);
+          setCurrentJobs([]);
+          return;
         }
 
-        if (filters.remote) {
-          filteredJobs = filteredJobs.filter(job =>
-            job.location.toLowerCase().includes('remote')
-          );
+        // Process and filter the jobs
+        let apiJobs = response.data.data.map(job => ({
+          id: job._id,
+          title: job.title || 'No title',
+          company: job.company || 'No company',
+          location: job.jobDetails?.location || 'Location not specified',
+          description: job.description || 'No description',
+          skills: job.skills || [],
+          salary: job.jobDetails?.salary || 'Salary not specified',
+          type: job.jobDetails?.employmentType || 'Type not specified',
+          postedDate: job.jobDetails?.postedDate || 'Date not specified',
+          postUrl: job.applyLink || '#',
+          companyLogo: job.companyDetails?.logo || null,
+          requirements: job.requirements || job.skills || [], // Use skills as fallback for requirements
+          sourceWebsite: job.source || 'TLE Jobs' // Add source website with fallback
+        }));
+
+        // Apply filters if provided
+        if (filters) {
+          // Filter by location
+          if (filters.location) {
+            const location = filters.location.toLowerCase();
+            apiJobs = apiJobs.filter(job =>
+              job.location.toLowerCase().includes(location)
+            );
+          }
+
+          // Filter by job type
+          if (filters.jobType) {
+            apiJobs = apiJobs.filter(job =>
+              job.type.toLowerCase().includes(filters.jobType.toLowerCase())
+            );
+          }
+
+          // Filter by remote
+          if (filters.remote) {
+            apiJobs = apiJobs.filter(job =>
+              job.location.toLowerCase().includes('remote')
+            );
+          }
+
+          // Filter by experience
+          if (filters.experience) {
+            apiJobs = apiJobs.filter(job =>
+              job.description.toLowerCase().includes(filters.experience.toLowerCase())
+            );
+          }
         }
+
+        // Filter out already swiped jobs
+        apiJobs = apiJobs.filter(job => !swipedJobIds.includes(job.id));
+        
+        setCurrentJobs(apiJobs);
+      } catch (error) {
+        console.error('Error fetching jobs for swipe:', error);
+        setCurrentJobs([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Filter out already swiped jobs
-      filteredJobs = filteredJobs.filter(job => !swipedJobIds.includes(job.id));
-
-      setCurrentJobs(filteredJobs);
-      setLoading(false);
-    }, 800);
+    fetchJobsForSwipe();
   }, [filters, swipedJobIds]);
 
   // Add a function to dynamically load TensorFlow if needed
   const loadTensorFlowDynamically = async () => {
     try {
-      setDebug(prev => [...prev, "Loading TensorFlow dynamically..."]);
-
       // Load TensorFlow.js dynamically if not available
       if (!window.tf) {
         const tfScript = document.createElement('script');
@@ -80,8 +134,6 @@ function SwipeableJobStack({ filters }) {
           tfScript.onerror = reject;
           document.head.appendChild(tfScript);
         });
-
-        setDebug(prev => [...prev, "TensorFlow.js loaded dynamically"]);
       }
 
       // Load handpose dynamically if not available
@@ -95,8 +147,6 @@ function SwipeableJobStack({ filters }) {
           handposeScript.onerror = reject;
           document.head.appendChild(handposeScript);
         });
-
-        setDebug(prev => [...prev, "Handpose loaded dynamically"]);
       }
 
       // Wait a moment for scripts to initialize
@@ -105,7 +155,6 @@ function SwipeableJobStack({ filters }) {
       return true;
     } catch (error) {
       console.error("Error loading TensorFlow dynamically:", error);
-      setDebug(prev => [...prev, `Dynamic load error: ${error.message}`]);
       return false;
     }
   };
@@ -121,12 +170,6 @@ function SwipeableJobStack({ filters }) {
 
       console.log("TF available after delay:", tfAvailable);
       console.log("Handpose available after delay:", handposeAvailable);
-
-      setDebug(prev => [
-        ...prev,
-        `TensorFlow available after delay: ${tfAvailable}`,
-        `Handpose available after delay: ${handposeAvailable}`
-      ]);
     };
 
     checkTensorFlow();
@@ -138,20 +181,17 @@ function SwipeableJobStack({ filters }) {
       // Check if TensorFlow is available globally
       if (!window.tf) {
         alert('TensorFlow.js not loaded. Please refresh the page and try again.');
-        setDebug(prev => [...prev, "TensorFlow not found"]);
         setIsHandGestureEnabled(false);
         return;
       }
 
       if (!window.handpose) {
         alert('Handpose model not loaded. Please refresh the page and try again.');
-        setDebug(prev => [...prev, "Handpose not found"]);
         setIsHandGestureEnabled(false);
         return;
       }
 
       setIsModelLoading(true);
-      setDebug(prev => [...prev, "Starting model load"]);
       console.log("Gesture mode enabled, loading handpose model...");
 
       const loadModel = async () => {
@@ -161,10 +201,8 @@ function SwipeableJobStack({ filters }) {
           const model = await window.handpose.load();
           console.log("Handpose model loaded successfully");
           setHandModel(model);
-          setDebug(prev => [...prev, "Model loaded successfully"]);
         } catch (error) {
           console.error("Failed to load handpose model:", error);
-          setDebug(prev => [...prev, `Model load error: ${error.message}`]);
           alert(`Error loading hand detection model: ${error.message}`);
           setIsHandGestureEnabled(false);
         } finally {
@@ -276,28 +314,53 @@ function SwipeableJobStack({ filters }) {
     }
   }, [isHandGestureEnabled]);
 
-  const handleSwipe = (jobId, direction) => {
+  const handleSwipe = async (jobId, direction) => {
     // Find the job that was swiped
-    const swipedJob = jobs.find(job => job.id === jobId);
+    const swipedJob = currentJobs.find(job => job.id === jobId);
     if (!swipedJob) return;
 
     // Add to swiped jobs to avoid showing it again
     setSwipedJobIds(prev => [...prev, jobId]);
 
-    // Mark as viewed regardless of direction
-    markJobAsViewed(jobId);
+    // Get the user if logged in
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (direction === 'right' && user && user.id) {
+      try {
+        // When swiped right and user is logged in:
+        // Call API to save the job
+        await api.post(`/api/jobs/savejob/${jobId}/${user.id}`);
+        console.log(`Saved job: ${swipedJob.title}`);
+        
+        // Show success notification
+        setSaveNotification({
+          show: true,
+          message: `${swipedJob.title} at ${swipedJob.company} saved to your profile!`,
+          type: 'success'
+        });
+        
+        // No longer open the job posting URL
+        // Instead just show a notification via console log
+      } catch (error) {
+        console.error('Error saving job:', error);
+        // Show error notification
+        setSaveNotification({
+          show: true,
+          message: 'Error saving job, please try again',
+          type: 'error'
+        });
+        // Continue with local UI update even if API call fails
+      }
+    } else if (direction === 'right' && (!user || !user.id)) {
+      // User not logged in but swiped right
+      setSaveNotification({
+        show: true,
+        message: 'Please log in to save jobs',
+        type: 'warning'
+      });
+    }
 
     if (direction === 'right') {
-      // When swiped right:
-      // 1. Save the job and mark as applied
-      saveJob(swipedJob);
-      markJobAsApplied(swipedJob);
-
-      // 2. Open the job posting URL in a new tab
-      if (swipedJob.postUrl) {
-        window.open(swipedJob.postUrl, '_blank');
-      }
-
       console.log(`Applied to: ${swipedJob.title}`);
     } else {
       console.log(`Passed on: ${swipedJob.title}`);
@@ -327,57 +390,66 @@ function SwipeableJobStack({ filters }) {
         </div>
       </div>
 
+      {/* Notification for job saving */}
       <AnimatePresence>
-        {currentJobs.map((job, index) => (
+        {saveNotification.show && (
           <motion.div
-            key={job.id}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute w-full"
-            style={{ zIndex: currentJobs.length - index }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`absolute top-0 left-0 right-0 z-50 p-3 rounded-lg text-white text-center mx-auto max-w-sm ${
+              saveNotification.type === 'success' ? 'bg-green-500' :
+              saveNotification.type === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+            }`}
           >
-            <JobCard
-              job={job}
-              onSwipe={handleSwipe}
-              index={index}
-            />
+            {saveNotification.message}
           </motion.div>
-        ))}
+        )}
       </AnimatePresence>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-96">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : currentJobs.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+          <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">
+            No more jobs to show
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Try adjusting your filters or come back later for more opportunities.
+          </p>
+        </div>
+      ) : (
+        <AnimatePresence>
+          {currentJobs.map((job, index) => (
+            <motion.div
+              key={job.id}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute w-full"
+              style={{ zIndex: currentJobs.length - index }}
+            >
+              <JobCard
+                job={job}
+                onSwipe={handleSwipe}
+                index={index}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      )}
 
       {/* Add TiltControls component */}
       <TiltControls
         onTiltAction={handleTiltAction}
         enabled={isTiltEnabled}
       />
-
-      {/* Debug panel - make this more visible */}
-      {debug.length > 0 && (
-        <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg max-w-md w-full text-sm border-2 border-blue-500">
-          <h3 className="font-bold mb-2">Debug Info:</h3>
-          <ul className="list-disc pl-5">
-            {debug.map((msg, i) => (
-              <li key={i} className="text-xs py-1">{msg}</li>
-            ))}
-          </ul>
-          <div className="flex space-x-2 mt-2">
-            <button
-              onClick={() => setDebug([])}
-              className="text-xs text-blue-500"
-            >
-              Clear
-            </button>
-            <button
-              onClick={loadTensorFlowDynamically}
-              className="text-xs text-green-500"
-            >
-              Force Load TensorFlow
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Camera feed with improved error handling */}
       {isHandGestureEnabled && (
@@ -393,13 +465,11 @@ function SwipeableJobStack({ filters }) {
             }}
             onUserMediaError={(error) => {
               console.error("Webcam error:", error);
-              setDebug(prev => [...prev, `Webcam error: ${error.name}`]);
               alert(`Error accessing camera: ${error.message}`);
               setIsHandGestureEnabled(false);
             }}
             onUserMedia={(stream) => {
               console.log("Webcam stream active");
-              setDebug(prev => [...prev, "Webcam stream active"]);
             }}
           />
           <canvas

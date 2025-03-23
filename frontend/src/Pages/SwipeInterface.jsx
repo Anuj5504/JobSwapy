@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SwipeableJobStack from '../components/SwipeableJobStack';
-import { useJobContext } from '../context/JobContext';
 
 function SwipeInterface() {
-  const { filters, updateFilters } = useJobContext();
+  const [filters, setFilters] = useState({
+    location: '',
+    minSalary: '',
+    jobType: '',
+    remote: false,
+    experience: ''
+  });
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
-  const [demoStep, setDemoStep] = useState(0); // 0: initial, 1: finger appears, 2: swipe right, 3: swipe left
+  const [demoStep, setDemoStep] = useState(0); 
 
   // Auto-play the demo animation in sequence
   useEffect(() => {
@@ -18,11 +23,21 @@ function SwipeInterface() {
   }, []);
 
   const handleFilterChange = (type, value) => {
-    updateFilters({ ...filters, [type]: value });
+    setFilters(prev => ({ ...prev, [type]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      location: '',
+      minSalary: '',
+      jobType: '',
+      remote: false,
+      experience: ''
+    });
   };
 
   return (
-    <div className="container mx-auto pt-2 px-4">
+    <div className="container mx-auto pt-2 px-4 h-[620px]">
       {/* More intuitive swipe animation */}
       {/* Filter Toggle Button - For Both Mobile and Desktop */}
       <div className="flex justify-center mb-4">
@@ -142,13 +157,7 @@ function SwipeInterface() {
                   {/* Reset Button */}
                   <div>
                     <button
-                      onClick={() => updateFilters({
-                        location: '',
-                        minSalary: '',
-                        jobType: '',
-                        remote: false,
-                        experience: ''
-                      })}
+                      onClick={resetFilters}
                       className="w-full px-3 py-2 mt-6 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                     >
                       Reset Filters

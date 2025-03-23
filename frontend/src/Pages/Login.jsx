@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { publishAuthChange } from '../components/Navbar';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -58,30 +59,32 @@ function Login() {
         firebaseUid: user.uid
       });
 
-        localStorage.setItem('user', JSON.stringify({
-              email: user.email,
-              name: user.displayName || email.split('@')[0],
-              id: response.data.user.id,
-              photoURL: response.data.user.photoURL,
-              authType: response.data.user.authType,
-              registrationComplete: response.data.user.registrationComplete
-            }));
-      
+      // Store user details and token
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify({
+        id: response.data.user._id,
+        name: response.data.user.name,
+        email: response.data.user.email,
+        registrationComplete: response.data.user.registrationComplete
+      }));
       
+      toast.success('Login successful!');
+      
+      // Redirect based on registration status
       if (!response.data.user.registrationComplete) {
-
-        console.log(response.data.user);
-        toast.info('Please complete your registration by uploading your resume');
         navigate('/resume-upload');
-        return;
+      } else {
+        // Redirect to home page
+        navigate('/');
       }
-
-      // Success message
-      toast.success('Login successful! Welcome back!');
-
-      // Redirect to home page
-      navigate('/');
+      
+      // Publish auth change
+      publishAuthChange({
+        id: response.data.user._id,
+        name: response.data.user.name,
+        email: response.data.user.email,
+        registrationComplete: response.data.user.registrationComplete
+      });
     } catch (error) {
       handleAuthError(error);
     } finally {
@@ -129,6 +132,15 @@ function Login() {
       
       // Redirect to home page
       navigate('/');
+
+      // Publish auth change
+      publishAuthChange({
+        id: response.data.user.id,
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        registrationComplete: response.data.user.registrationComplete
+      });
     } catch (error) {
       handleAuthError(error);
     } finally {

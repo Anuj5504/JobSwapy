@@ -1,29 +1,48 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useJobContext } from '../context/JobContext';
 import api from '../services/api';
 
 function JobListings() {
-  const { savedJobs, saveJob, viewedJobs, markJobAsViewed } = useJobContext();
   const [jobs, setJobs] = useState([]);
+  const [savedJobIds, setSavedJobIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('cards');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [paginationInfo, setPaginationInfo] = useState(null);
+  const [isRecommended, setIsRecommended] = useState(false);
 
   // Fetch jobs from API with pagination
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const user= JSON.parse(localStorage.getItem('user'));
-        console.log(user.id);
-        // const response = await api.get(`/api/jobs?page=${currentPage}&limit=20`);
-        const response = await api.get(`/api/jobs/getRecommendation/${user.id}?page=${currentPage}&limit=20`);
-
         
+        // Get user from auth context or session
+        const user = JSON.parse(localStorage.getItem('user'));
+        let response;
+        
+        // If user exists, fetch recommendations, otherwise fetch all jobs
+        if (user && user.id) {
+          response = await api.get(`/api/jobs/getRecommendation/${user.id}?page=${currentPage}&limit=20`);
+          setIsRecommended(true);
+
+          // Fetch saved jobs for this user
+          try {
+            const savedJobsResponse = await api.get(`/api/users/${user.id}/savedJobs`);
+            if (savedJobsResponse.data && savedJobsResponse.data.savedJobs) {
+              setSavedJobIds(savedJobsResponse.data.savedJobs.map(job => job._id || job));
+            }
+          } catch (error) {
+            console.error('Error fetching saved jobs:', error);
+          }
+        } else {
+          response = await api.get(`/api/jobs?page=${currentPage}&limit=20`);
+          setIsRecommended(false);
+        }
+        
+        // Check if response has the expected structure
         if (!response.data || !response.data.data || !Array.isArray(response.data.data)) {
           console.error('Invalid API response format:', response.data);
           setJobs([]);
@@ -34,6 +53,7 @@ function JobListings() {
         setPaginationInfo(response.data.pagination);
         setTotalPages(response.data.pagination.pages);
 
+        // Process the jobs
         const processedJobs = response.data.data.map(job => ({
           id: job._id,
           title: job.title || 'No title',
@@ -67,12 +87,35 @@ function JobListings() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSaveJob = (job) => {
-    saveJob({...job, savedDate: new Date().toISOString()});
-  };
-  
-  const handleViewJob = (jobId) => {
-    markJobAsViewed(jobId);
+  const handleSaveJob = async (job) => {
+    try {
+      // Get user from auth context
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        alert('Please login to save jobs');
+        return;
+      }
+      
+      // Update UI optimistically
+      setSavedJobIds(prev => [...prev, job.id]);
+      
+      // Call API to save job to user's profile
+      const response = await api.post(`/api/jobs/savejob/${job.id}/${user.id}`);
+      console.log('Job saved successfully:', response.data);
+      
+      // Refresh saved jobs
+      const savedJobsResponse = await api.get(`/api/users/${user.id}/savedJobs`);
+      if (savedJobsResponse.data && savedJobsResponse.data.savedJobs) {
+        setSavedJobIds(savedJobsResponse.data.savedJobs.map(job => job._id || job));
+      }
+    } catch (error) {
+      console.error('Error saving job:', error);
+      console.error('Error details:', error.response?.data);
+      
+      // Revert optimistic update
+      setSavedJobIds(prev => prev.filter(id => id !== job.id));
+      alert('Failed to save job. Please try again.');
+    }
   };
 
   // Render pagination controls
@@ -209,8 +252,12 @@ function JobListings() {
         className="mb-6 flex justify-between items-center"
       >
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Job Listings</h1>
-          <p className="text-gray-600 dark:text-gray-300">Browse all available positions</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            {isRecommended ? 'Recommended Jobs' : 'Job Listings'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            {isRecommended ? 'Jobs tailored to your profile' : 'Browse all available positions'}
+          </p>
         </div>
       </motion.div>
       
@@ -253,8 +300,12 @@ function JobListings() {
             <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">No jobs found</h2>
-            <p className="text-gray-500 dark:text-gray-400">Please try again later.</p>
+            <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {isRecommended ? 'No recommended jobs found' : 'No jobs found'}
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400">
+              {isRecommended ? 'Please update your profile to get personalized recommendations.' : 'Please try again later.'}
+            </p>
           </div>
         ) : (
           <div className={`grid ${viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'} gap-4`}>
@@ -273,8 +324,8 @@ function JobListings() {
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
                           <div>
                             <Link 
-                              to={`/job/${job.id}`} 
-                              onClick={() => handleViewJob(job.id)}
+                              to={`/job/${job.id}`}
+                              state={{ job: job }}
                               className="text-lg font-semibold text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
                             >
                               {job.title}
@@ -284,12 +335,6 @@ function JobListings() {
                               <span>{job.company}</span>
                               <span>•</span>
                               <span>{job.location}</span>
-                              {viewedJobs.includes(job.id) && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-purple-600 dark:text-purple-400">Viewed</span>
-                                </>
-                              )}
                             </div>
                           </div>
                           
@@ -327,14 +372,14 @@ function JobListings() {
                         </a>
                         <button
                           onClick={() => handleSaveJob(job)}
-                          disabled={savedJobs.some(j => j.id === job.id)}
+                          disabled={savedJobIds.includes(job.id)}
                           className={`px-4 py-2 rounded text-sm text-center border ${
-                            savedJobs.some(j => j.id === job.id)
+                            savedJobIds.includes(job.id)
                               ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                               : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors'
                           }`}
                         >
-                          {savedJobs.some(j => j.id === job.id) ? 'Saved' : 'Save Job'}
+                          {savedJobIds.includes(job.id) ? 'Saved' : 'Save Job'}
                         </button>
                       </div>
                     </>
@@ -343,7 +388,7 @@ function JobListings() {
                       <div className="flex justify-between items-start">
                         <Link 
                           to={`/job/${job.id}`}
-                          onClick={() => handleViewJob(job.id)}
+                          state={{ job: job }}
                           className="text-lg font-semibold text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2"
                         >
                           {job.title}
@@ -351,10 +396,10 @@ function JobListings() {
                         
                         <button
                           onClick={() => handleSaveJob(job)}
-                          disabled={savedJobs.some(j => j.id === job.id)}
+                          disabled={savedJobIds.includes(job.id)}
                           className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
                         >
-                          {savedJobs.some(j => j.id === job.id) ? (
+                          {savedJobIds.includes(job.id) ? (
                             <svg className="w-6 h-6 text-blue-500 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                             </svg>
@@ -393,9 +438,6 @@ function JobListings() {
                       <div className="mt-4 flex justify-between items-center">
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {job.postedDate}
-                          {viewedJobs.includes(job.id) && (
-                            <span className="ml-2 text-purple-600 dark:text-purple-400">• Viewed</span>
-                          )}
                         </span>
                         
                         <a 

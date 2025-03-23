@@ -1,9 +1,105 @@
-import { useJobContext } from '../context/JobContext';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
 
 function SavedJobs() {
-  const { savedJobs, unsaveJob, markJobAsApplied } = useJobContext();
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      try {
+        setLoading(true);
+        // Get user from localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        
+        if (!user || !user.id) {
+          setSavedJobs([]);
+          return;
+        }
+        
+        const response = await api.get(`/api/users/${user.id}/savedJobs`);
+        
+        if (response.data && response.data.savedJobs) {
+          // Process the jobs to match the expected format
+          const processedJobs = response.data.savedJobs.map(job => ({
+            id: job._id,
+            title: job.title || 'No title',
+            company: job.company || 'No company',
+            location: job.jobDetails?.location || 'Location not specified',
+            description: job.description || 'No description',
+            requirements: job.skills || [],
+            salary: job.jobDetails?.salary || 'Salary not specified',
+            type: job.jobDetails?.employmentType || 'Type not specified',
+            postedDate: job.jobDetails?.postedDate || 'Date not specified',
+            applyLink: job.applyLink || '#',
+            companyDetails: job.companyDetails || {},
+            savedDate: job.createdAt || new Date().toISOString()
+          }));
+          
+          setSavedJobs(processedJobs);
+        } else {
+          setSavedJobs([]);
+        }
+      } catch (error) {
+        console.error('Error fetching saved jobs:', error);
+        setSavedJobs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSavedJobs();
+  }, []);
+  
+  const handleUnsaveJob = async (jobId) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        return;
+      }
+      
+      // Update UI optimistically
+      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+      
+      // Call API to remove job from saved list
+      await api.delete(`/api/jobs/unsavejob/${jobId}/${user.id}`);
+      
+    } catch (error) {
+      console.error('Error removing saved job:', error);
+      // Refresh the list to restore correct state
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user && user.id) {
+        const response = await api.get(`/api/users/${user.id}/savedJobs`);
+        if (response.data && response.data.savedJobs) {
+          const processedJobs = response.data.savedJobs.map(job => ({
+            id: job._id,
+            title: job.title || 'No title',
+            company: job.company || 'No company',
+            location: job.jobDetails?.location || 'Location not specified',
+            description: job.description || 'No description',
+            requirements: job.skills || [],
+            salary: job.jobDetails?.salary || 'Salary not specified',
+            type: job.jobDetails?.employmentType || 'Type not specified',
+            postedDate: job.jobDetails?.postedDate || 'Date not specified',
+            applyLink: job.applyLink || '#',
+            companyDetails: job.companyDetails || {},
+            savedDate: job.createdAt || new Date().toISOString()
+          }));
+          setSavedJobs(processedJobs);
+        }
+      }
+    }
+  };
+  
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4 max-w-3xl flex justify-center items-center" style={{ minHeight: '60vh' }}>
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
   
   if (savedJobs.length === 0) {
     return (
@@ -15,7 +111,7 @@ function SavedJobs() {
           </svg>
           <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">No saved jobs yet</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-4">Jobs you save will appear here for easy access.</p>
-          <Link to="/">
+          <Link to="/jobs">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -68,7 +164,7 @@ function SavedJobs() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.open(job.postUrl, '_blank')}
+                onClick={() => window.open(job.applyLink, '_blank')}
                 className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
               >
                 Apply
@@ -77,7 +173,7 @@ function SavedJobs() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => unsaveJob(job.id)}
+                onClick={() => handleUnsaveJob(job.id)}
                 className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
               >
                 Remove

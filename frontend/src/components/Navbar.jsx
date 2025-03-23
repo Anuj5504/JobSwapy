@@ -2,7 +2,21 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import DarkModeToggle from './DarkModeToggle';
-import { useJobContext } from '../context/JobContext';
+
+const AuthEvents = {
+  listeners: new Set(),
+  subscribe(listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  },
+  publish(data) {
+    this.listeners.forEach(listener => listener(data));
+  }
+};
+
+export const publishAuthChange = (user) => {
+  AuthEvents.publish(user);
+};
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,20 +26,46 @@ function Navbar() {
   const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { savedJobs, appliedJobs, viewedJobs } = useJobContext();
   
-  // Handle authentication state
-  useEffect(() => {
-    // Check for user in localStorage (or your auth state management)
+  // Function to get user from localStorage
+  const getUserFromStorage = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        return JSON.parse(storedUser);
       } catch (e) {
         console.error('Error parsing stored user data', e);
         localStorage.removeItem('user');
+        return null;
       }
     }
+    return null;
+  };
+
+  // Handle authentication state
+  useEffect(() => {
+    // Initial check for user
+    setUser(getUserFromStorage());
+    
+    // Listen for storage events (when localStorage changes in other tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === 'user' || e.key === null) { // null means clear all localStorage
+        const currentUser = getUserFromStorage();
+        setUser(currentUser);
+      }
+    };
+    
+    // Listen for auth events within the same tab
+    const unsubscribe = AuthEvents.subscribe((newUser) => {
+      setUser(newUser);
+    });
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      unsubscribe();
+    };
   }, []);
 
   // Handle scroll state for navbar styling
@@ -47,6 +87,9 @@ function Navbar() {
     setUser(null);
     setUserMenuOpen(false);
     setIsMenuOpen(false);
+    
+    // Publish auth change
+    publishAuthChange(null);
     
     // Navigate to home page
     navigate('/');
@@ -116,7 +159,7 @@ function Navbar() {
               </Link>
 
               {/* Saved Jobs - Only show if user is logged in */}
-              {user && user.registrationComplete && (
+              {user && (
                 <Link 
                   to="/saved" 
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
@@ -129,26 +172,7 @@ function Navbar() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                     </svg>
-                    <span>Saved ({savedJobs.length})</span>
-                  </div>
-                </Link>
-              )}
-
-              {/* Applied Jobs - Only show if user is logged in */}
-              {user && user.registrationComplete && (
-                <Link 
-                  to="/applied" 
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
-                    ${location.pathname === '/applied'
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                >
-                  <div className="flex items-center space-x-1">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <span>Applied ({appliedJobs.length})</span>
+                    <span>Saved</span>
                   </div>
                 </Link>
               )}
@@ -157,7 +181,7 @@ function Navbar() {
             <DarkModeToggle />
 
             {/* Authentication options for desktop */}
-            {user && user.registrationComplete ? (
+            {user ? (
               /* User Menu - Desktop */
               <div className="relative">
                 <motion.button
@@ -314,18 +338,7 @@ function Navbar() {
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Saved Jobs ({savedJobs.length})
-                  </Link>
-                  <Link
-                    to="/applied"
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${
-                      location.pathname === '/applied'
-                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Applied Jobs ({appliedJobs.length})
+                    Saved Jobs
                   </Link>
                   <Link
                     to="/profile"

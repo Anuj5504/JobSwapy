@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useJobContext } from '../context/JobContext';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 function JobDetails() {
   const { id } = useParams();
@@ -10,55 +11,86 @@ function JobDetails() {
   const location = useLocation();
   const [job, setJob] = useState(location.state?.job || null);
   const [loading, setLoading] = useState(!location.state?.job);
-  const [similarJobs, setSimilarJobs] = useState([]);
   const { saveJob, savedJobs, markJobAsApplied, appliedJobs } = useJobContext();
   const [isApplying, setIsApplying] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
+  const [savedJobIds, setSavedJobIds] = useState([]);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
       if (!job) {
         try {
-    setLoading(true);
+          setLoading(true);
           const response = await api.get(`/api/jobs/${id}`);
-          if (response.data) {
-            setJob(response.data);
+          console.log("job details", response.data);
+          if (response.data && response.data.data) {
+            setJob(response.data.data);
           }
         } catch (error) {
           console.error('Error fetching job details:', error);
         } finally {
-      setLoading(false);
+          setLoading(false);
         }
       }
     };
 
     fetchJobDetails();
-  }, [id, job]);
-
-  // Fetch similar jobs
-  useEffect(() => {
-    const fetchSimilarJobs = async () => {
-      if (job) {
-        try {
-          const response = await api.get(`/api/jobs/similar/${id}`);
-          if (response.data) {
-            setSimilarJobs(response.data);
+    
+    // Fetch saved jobs for current user
+    const fetchSavedJobs = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.id) {
+          const savedJobsResponse = await api.get(`/api/users/${user.id}/savedJobs`);
+          if (savedJobsResponse.data && savedJobsResponse.data.savedJobs) {
+            setSavedJobIds(savedJobsResponse.data.savedJobs.map(job => job._id || job));
           }
-        } catch (error) {
-          console.error('Error fetching similar jobs:', error);
         }
+      } catch (error) {
+        console.error('Error fetching saved jobs:', error);
       }
     };
-
-    fetchSimilarJobs();
+    
+    fetchSavedJobs();
   }, [id, job]);
 
-  const isJobSaved = savedJobs.some(j => String(j.id) === String(id));
+  const isJobSaved = savedJobIds.includes(id) || (job && savedJobIds.includes(job._id));
   const isJobApplied = appliedJobs.includes(id);
 
-  const handleSaveJob = () => {
+  const handleSaveJob = async () => {
     if (!isJobSaved && job) {
-      saveJob(job);
+      try {
+        // Get user from localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.id) {
+          toast.error('Please login to save jobs');
+          return;
+        }
+        
+        // Update UI optimistically
+        setSavedJobIds(prev => [...prev, job._id]);
+        
+        // Call API to save job to user's profile
+        await api.post(`/api/jobs/savejob/${job._id}/${user.id}`);
+        console.log('Job saved successfully');
+        toast.success('Job saved successfully');
+        
+        // Also update local context
+        saveJob(job);
+        
+        // Refresh saved jobs to confirm update
+        const savedJobsResponse = await api.get(`/api/users/${user.id}/savedJobs`);
+        if (savedJobsResponse.data && savedJobsResponse.data.savedJobs) {
+          setSavedJobIds(savedJobsResponse.data.savedJobs.map(job => job._id || job));
+        }
+      } catch (error) {
+        console.error('Error saving job:', error);
+        // Revert optimistic update
+        setSavedJobIds(prev => prev.filter(id => id !== job._id));
+        toast.error('Failed to save job. Please try again.');
+      }
+    } else if (isJobSaved) {
+      toast.info('This job is already saved to your profile');
     }
   };
 
@@ -77,17 +109,54 @@ function JobDetails() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[70vh] bg-white dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[70vh] bg-gray-50 dark:bg-gray-900">
         <div className="animate-pulse flex flex-col w-full max-w-6xl">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-6"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-4">
-              <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          {/* Header skeleton */}
+          <div className="h-64 bg-white dark:bg-gray-800 rounded-xl overflow-hidden mb-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-900/30 dark:to-purple-900/30"></div>
+            <div className="absolute bottom-8 left-8">
+              <div className="h-10 bg-white/30 dark:bg-white/10 rounded w-3/4 mb-4"></div>
+              <div className="h-6 bg-white/30 dark:bg-white/10 rounded w-1/2"></div>
             </div>
-            <div className="space-y-4">
-              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="absolute top-8 right-8">
+              <div className="h-20 w-20 bg-white/30 dark:bg-white/10 rounded-full"></div>
+            </div>
+          </div>
+          
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 space-y-8">
+              <div className="h-[400px] bg-white dark:bg-gray-800 rounded-xl p-6">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-6"></div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="h-[350px] bg-white dark:bg-gray-800 rounded-xl p-6">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
+                <div className="space-y-4">
+                  <div className="flex">
+                    <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full mr-3"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full mr-3"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                  <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg mt-8"></div>
+                  <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -97,15 +166,30 @@ function JobDetails() {
 
   if (!job) {
     return (
-      <div className="container mx-auto px-4 py-16 flex flex-col items-center bg-white dark:bg-gray-900 min-h-screen">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Job Not Found</h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-8">The job you're looking for doesn't exist or has been removed.</p>
-        <Link 
-          to="/jobs"
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+      <div className="container mx-auto px-4 py-16 flex flex-col items-center bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-md w-full text-center"
         >
-          Browse Jobs
-        </Link>
+          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Job Not Found</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">The job you're looking for doesn't exist or has been removed.</p>
+          <Link 
+            to="/jobs"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Browse Jobs
+          </Link>
+        </motion.div>
       </div>
     );
   }
@@ -119,29 +203,64 @@ function JobDetails() {
           transition={{ duration: 0.5 }}
           className="max-w-6xl mx-auto"
         >
-          {/* Header Section */}
+          {/* Enhanced Header Section */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-8">
-            <div className="relative h-48 md:h-64">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-90"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-white">
+            <div className="relative h-64">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-800 opacity-90"></div>
+              <div className="absolute inset-0 flex items-center justify-between px-8">
+                <div className="text-white max-w-2xl">
                   <motion.h1 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-3xl md:text-4xl font-bold mb-4"
+                    className="text-3xl md:text-4xl font-bold mb-2"
                   >
-                    {job.title}
+                    {job?.title}
                   </motion.h1>
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-xl"
+                    className="text-xl mb-2"
                   >
-                    {job.company}
+                    {/* {job?.company} */}
+                    {job?.company}
                   </motion.div>
+                  {job?.jobDetails?.location && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="flex items-center text-white/90 text-sm"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {job?.jobDetails?.location}
+                    </motion.div>
+                  )}
                 </div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg"
+                >
+                  {job?.companyDetails.logo ? (
+                    <img 
+                      src={job?.companyDetails.logo} 
+                      alt={`${job.company} logo`} 
+                      className="w-20 h-20 object-contain rounded-full"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-full">
+                      <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
+                        {job?.company?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </motion.div>
               </div>
             </div>
           </div>
@@ -153,100 +272,145 @@ function JobDetails() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
               >
-                <div className="flex space-x-4 mb-6">
+                <div className="flex bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                   <button
                     onClick={() => setActiveTab('description')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-6 py-4 font-medium transition-colors ${
                       activeTab === 'description'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                     }`}
                   >
                     Description
                   </button>
                   <button
                     onClick={() => setActiveTab('requirements')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-6 py-4 font-medium transition-colors ${
                       activeTab === 'requirements'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                     }`}
                   >
                     Requirements
                   </button>
+                  <button
+                    onClick={() => setActiveTab('company')}
+                    className={`px-6 py-4 font-medium transition-colors ${
+                      activeTab === 'company'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`}
+                  >
+                    Company
+                  </button>
                 </div>
 
-                <AnimatePresence mode="wait">
-                  {activeTab === 'description' && (
-                    <motion.div
-                      key="description"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      className="prose dark:prose-invert max-w-none"
-                    >
-                      <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                        {job.description}
-              </div>
-                    </motion.div>
-                  )}
+                <div className="p-6">
+                  <AnimatePresence mode="wait">
+                    {activeTab === 'description' && (
+                      <motion.div
+                        key="description"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="prose dark:prose-invert max-w-none"
+                      >
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Job Description</h3>
+                        <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                          {job?.description}
+                        </div>
+                      </motion.div>
+                    )}
 
-                  {activeTab === 'requirements' && (
-                    <motion.div
-                      key="requirements"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      className="space-y-4"
-                    >
-                      {job.skills && job.skills.length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Required Skills</h3>
+                    {activeTab === 'requirements' && (
+                      <motion.div
+                        key="requirements"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-6"
+                      >
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Required Skills</h3>
+                        {job?.skills && job.skills.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
                             {job.skills.map((skill, index) => (
-                              <span
+                              <motion.span
                                 key={index}
-                                className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
                               >
                                 {skill}
-                              </span>
-                ))}
-              </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* Company Details */}
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-              >
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">About {job.company}</h3>
-                {job.companyDetails && (
-                  <div className="space-y-4">
-                    {job.companyDetails.about && (
-                      <p className="text-gray-600 dark:text-gray-300">{job.companyDetails.about}</p>
-                    )}
-                    {job.companyDetails.rating && (
-                      <div className="flex items-center">
-                        <span className="text-yellow-400">★</span>
-                        <span className="ml-2 text-gray-600 dark:text-gray-300">{job.companyDetails.rating}</span>
-                        {job.companyDetails.reviews && (
-                          <span className="ml-2 text-gray-500 dark:text-gray-400">
-                            ({job.companyDetails.reviews} reviews)
-                          </span>
+                              </motion.span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-600 dark:text-gray-400">No specific skills listed for this position.</p>
                         )}
-                      </div>
+                        
+                        {job?.jobDetails?.experience && (
+                          <div className="mt-6">
+                            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Experience</h4>
+                            <p className="text-gray-600 dark:text-gray-300">{job.jobDetails.experience}</p>
+                          </div>
+                        )}
+                      </motion.div>
                     )}
-                  </div>
-                )}
+
+                    {activeTab === 'company' && (
+                      <motion.div
+                        key="company"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-4"
+                      >
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">About {job?.company}</h3>
+                        <div className="flex items-center space-x-4 mb-4">
+                          {job?.companyLogo ? (
+                            <img 
+                              src={job.companyLogo} 
+                              alt={`${job.company} logo`} 
+                              className="w-16 h-16 object-contain rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-lg">
+                              <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
+                                {job?.company?.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="text-lg font-medium text-gray-900 dark:text-white">{job?.company}</h4>
+                            {job?.companyDetails?.rating && (
+                              <div className="flex items-center">
+                                <span className="text-yellow-400">★</span>
+                                <span className="ml-2 text-gray-600 dark:text-gray-300">{job.companyDetails.rating}</span>
+                                {job.companyDetails.reviews && (
+                                  <span className="ml-2 text-gray-500 dark:text-gray-400">
+                                    ({job.companyDetails.reviews} reviews)
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {job?.companyDetails?.about ? (
+                          <p className="text-gray-600 dark:text-gray-300">{job.companyDetails.about}</p>
+                        ) : (
+                          <p className="text-gray-500 dark:text-gray-400">No detailed information available about this company.</p>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </motion.div>
             </div>
             
@@ -256,241 +420,176 @@ function JobDetails() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-8"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden sticky top-8"
               >
-                <div className="space-y-6">
-                  {/* Job Details */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Job Details</h3>
-                    <div className="space-y-3">
-                      {/* Source */}
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Source: {job.source}
-                      </div>
-
-                      {/* Apply Link */}
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        <a 
-                          href={job.applyLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 hover:underline truncate"
-                        >
-                          {job.applyLink}
-                        </a>
-                      </div>
-
-                      {/* Company */}
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        Company: {job.company}
-                      </div>
-
-                      {/* Title */}
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        Title: {job.title}
-                      </div>
-
-                      {/* Job Details Section */}
-                      {job.jobDetails && (
-                        <>
-                          {job.jobDetails.location && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                              Location: {job.jobDetails.location}
-                            </div>
-                          )}
-                          {job.jobDetails.employmentType && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                              Employment Type: {job.jobDetails.employmentType}
-                            </div>
-                          )}
-                          {job.jobDetails.salary && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Salary: {job.jobDetails.salary}
-                            </div>
-                          )}
-                          {job.jobDetails.experience && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                              Experience: {job.jobDetails.experience}
-                            </div>
-                          )}
-                          {job.jobDetails.postedDate && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              Posted Date: {job.jobDetails.postedDate}
-                            </div>
-                          )}
-                          {job.jobDetails.startDate && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              Start Date: {job.jobDetails.startDate}
-                            </div>
-                          )}
-                          {job.jobDetails.applicants && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                              </svg>
-                              Applicants: {job.jobDetails.applicants}
-                            </div>
-                          )}
-                          {job.jobDetails.openings && (
-                            <div className="flex items-center text-gray-600 dark:text-gray-300">
-                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                              Openings: {job.jobDetails.openings}
-              </div>
-                          )}
-                        </>
-                      )}
-
-                      {/* Skills */}
-                      {job.skills && job.skills.length > 0 && (
-                        <div className="flex items-start text-gray-600 dark:text-gray-300">
-                          <svg className="w-5 h-5 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-b dark:border-gray-600">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Job Details</h3>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  {/* Key Details Section */}
+                  <div className="space-y-4">
+                    {/* Employment Type */}
+                    {job?.jobDetails?.employmentType && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 block">Job Type</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{job.jobDetails.employmentType}</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Salary */}
+                    {job?.jobDetails?.salary && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 block">Salary</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{job.jobDetails.salary}</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Posted Date */}
+                    {job?.jobDetails?.postedDate && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 block">Posted</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{job.jobDetails.postedDate}</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Applicants */}
+                    {job?.jobDetails?.applicants && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        className="flex items-center"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 block">Applicants</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{job.jobDetails.applicants}</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                  
+                  {/* Source Info */}
+                  <div className="border-t dark:border-gray-600 pt-4">
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                          <div>
-                            <span className="font-medium">Skills:</span>
-                            <div className="flex flex-wrap gap-2 mt-1">
-                              {job.skills.map((skill, index) => (
-                                <span
-                                  key={index}
-                                  className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                </div>
-              </div>
-            )}
-            
-                      {/* Timestamps */}
-                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Scraped: {new Date(job.scrapedAt).toLocaleString()}
-                      </div>
+                      Source: {job?.source}
                     </div>
-                </div>
+                    {/* <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Scraped: {new Date(job?.scrapedAt).toLocaleString()}
+                    </div> */}
+                  </div>
 
                   {/* Action Buttons */}
-                  <div className="space-y-3">
-                  <button
-                    onClick={handleApplyJob}
-                    disabled={isJobApplied || isApplying}
-                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors ${
-                      isJobApplied || isApplying
-                        ? 'bg-green-600 text-white cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
-                  >
-                    {isApplying ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Applying...
-                      </>
-                    ) : isJobApplied ? (
-                      <>
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Applied
-                      </>
-                    ) : (
-                      'Apply Now'
-                    )}
-                  </button>
-                    <button
-                      onClick={handleSaveJob}
-                      disabled={isJobSaved}
-                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-colors ${
-                        isJobSaved 
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
-                          : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                  <div className="space-y-3 pt-2">
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.9 }}
+                      onClick={handleApplyJob}
+                      disabled={isJobApplied || isApplying}
+                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all ${
+                        isJobApplied || isApplying
+                          ? 'bg-green-600 text-white cursor-not-allowed'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
                       }`}
                     >
-                      <svg className={`w-5 h-5 mr-2 ${isJobSaved ? 'text-blue-500' : 'text-gray-400 dark:text-gray-500'}`} fill={isJobSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                      {isApplying ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Applying...
+                        </>
+                      ) : isJobApplied ? (
+                        <>
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Applied
+                        </>
+                      ) : (
+                        'Apply Now'
+                      )}
+                    </motion.button>
+                    
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1 }}
+                      onClick={handleSaveJob}
+                      disabled={isJobSaved}
+                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all ${
+                        isJobSaved 
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600 cursor-not-allowed' 
+                          : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow transform hover:-translate-y-0.5'
+                      }`}
+                    >
+                      <svg className={`w-5 h-5 mr-2 ${isJobSaved ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} fill={isJobSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
                       {isJobSaved ? 'Saved' : 'Save Job'}
-                    </button>
-              </div>
+                    </motion.button>
+                    
+                    {job?.applyLink && (
+                      <a 
+                        href={job.applyLink}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="block text-center text-sm text-blue-600 dark:text-blue-400 hover:underline mt-2"
+                      >
+                        View original job posting
+                      </a>
+                    )}
+                  </div>
                 </div>
               </motion.div>
-
-              {/* Similar Jobs */}
-              {similarJobs.length > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-                >
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Similar Jobs</h3>
-                  <div className="space-y-4">
-                    {similarJobs.map(similarJob => (
-              <Link 
-                        key={similarJob._id} 
-                        to={`/job/${similarJob._id}`}
-                        state={{ job: similarJob }}
-                        className="block p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
-              >
-                <h4 className="font-medium text-gray-900 dark:text-white mb-1">{similarJob.title}</h4>
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                          {similarJob.company} • {similarJob.jobDetails?.location}
-                </div>
-                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                          <span className="mr-2">{similarJob.jobDetails?.postedDate}</span>
-                          <span className={`px-2 py-0.5 rounded-full ${
-                            similarJob.jobDetails?.employmentType === 'Remote' 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                          }`}>
-                            {similarJob.jobDetails?.employmentType || 'Full-time'}
-                  </span>
-                </div>
-              </Link>
-            ))}
-                  </div>
-                </motion.div>
-              )}
+            </div>
           </div>
-        </div>
         </motion.div>
       </div>
     </div>
