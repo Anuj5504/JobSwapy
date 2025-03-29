@@ -807,7 +807,7 @@ function JobListings() {
                 savedCount={job.savedCount}
                 appliedCount={job.appliedCount}
               />
-            </Link>
+            </div>
           ))}
         </div>
       )}

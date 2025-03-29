@@ -374,7 +374,7 @@ const triggerJobNotifications = async (since = new Date(Date.now() - 24 * 60 * 6
         
         // Send email with small delay
         console.log(`   📧 Sending notification to ${user.email}`);
-        await sleep(2000); // 2 seconds delay
+        await sleep(2000000); // 2 seconds delay
         
         // Send email alert with only matched skills
         await sendJobAlert(user, randomJob, matchedSkills, []);
@@ -390,11 +390,6 @@ const triggerJobNotifications = async (since = new Date(Date.now() - 24 * 60 * 6
       }
     }
     
-    // Return statistics
-    console.log(`📊 NOTIFICATION SUMMARY:`);
-    console.log(`   Jobs processed: ${processedJobs.size}`);
-    console.log(`   Notifications sent: ${totalNotifications}`);
-    console.log(`   Unique users notified: ${notifiedUsers.size}`);
     
     return {
       jobs: processedJobs.size,
