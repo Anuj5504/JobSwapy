@@ -96,12 +96,15 @@ function SavedJobs() {
   // Add handler for Apply button clicks
   const handleApplyClick = async (jobId, applyLink, e) => {
     e.preventDefault(); // Prevent default link behavior
+    console.log(`Applying for job ID: ${jobId}`);
+    console.log(`Apply link: ${applyLink}`);
     
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const token = localStorage.getItem('token'); // Get token as string
+      console.log(token);
       
-      if (user && user.id && token) {
+      if (token) {
         // Record the application
         await api.post(`/api/jobs/${jobId}/apply`, {}, {
           headers: { Authorization: `Bearer ${token}` }

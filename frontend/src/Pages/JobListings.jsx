@@ -134,7 +134,7 @@ function JobListings() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const token = localStorage.getItem('token'); // Don't parse token as JSON
-
+        
       if (user && user.id && token) {
         // Record the application
         await api.post(`/api/jobs/${jobId}/apply`, {}, {
@@ -417,9 +417,8 @@ function JobListings() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {jobs.map(job => (
-            <Link
+            <div
               key={job.id}
-              to={`/job/${job.id}`}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="flex justify-between items-start mb-3">
@@ -429,7 +428,9 @@ function JobListings() {
                         {job.source}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job.title}</h3>
+                  <Link to={`/job/${job.id}`} className="block">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">{job.title}</h3>
+                  </Link>
                 </div>
               </div>
 
@@ -462,15 +463,14 @@ function JobListings() {
                   )}
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{job.company}</span>
                 </div>
-                <a
-                  href="#"
+                <button
                   onClick={(e) => handleApplyClick(job.id, job.applyLink, e)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   Apply
-                </a>
+                </button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
