@@ -13,7 +13,6 @@ import ReactFlow, {
   Position
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 
 // Custom Node Component
