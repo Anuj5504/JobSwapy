@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 function MockInterview() {
   const navigate = useNavigate();
   const { jobId } = useParams();
-  
+
   // Core states
   const [jobData, setJobData] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -52,7 +52,7 @@ function MockInterview() {
       recognition.current = new webkitSpeechRecognition();
       recognition.current.continuous = true;
       recognition.current.interimResults = true;
-      
+
       recognition.current.onresult = (event) => {
         let transcript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -122,7 +122,7 @@ function MockInterview() {
         },
         audio: true
       });
-      
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -142,7 +142,7 @@ function MockInterview() {
       window.speechSynthesis.cancel(); // Cancel any ongoing speech
 
       const utterance = new SpeechSynthesisUtterance(question);
-      
+
       // Configure voice
       utterance.rate = 0.9;
       utterance.pitch = 1;
@@ -151,11 +151,11 @@ function MockInterview() {
 
       // Get voices and select a good one
       const voices = window.speechSynthesis.getVoices();
-      const englishVoices = voices.filter(voice => 
-        voice.lang.includes('en') && 
+      const englishVoices = voices.filter(voice =>
+        voice.lang.includes('en') &&
         (voice.name.includes('Google') || voice.name.includes('Natural'))
       );
-      
+
       if (englishVoices.length > 0) {
         utterance.voice = englishVoices[0];
       }
@@ -222,7 +222,7 @@ function MockInterview() {
       setCurrentQuestionIndex(prev => prev + 1);
       setFeedback(null);
       setTranscribedText('');
-      
+
       // Read next question first
       await readQuestion(questions[currentQuestionIndex + 1].question);
       // Then start recording
@@ -255,7 +255,7 @@ function MockInterview() {
   // Update the AIAvatar component
   const AIAvatar = ({ isAISpeaking }) => (
     <div className="fixed bottom-8 left-8 z-50">
-      <motion.div 
+      <motion.div
         className="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-full 
                    shadow-lg p-3 pr-6 border border-blue-100 dark:border-blue-900"
         animate={isAISpeaking ? {
@@ -265,21 +265,21 @@ function MockInterview() {
       >
         <div className={`relative rounded-full bg-gradient-to-r from-blue-500 to-blue-600 p-3
                         ${isAISpeaking ? 'ring-4 ring-blue-200 dark:ring-blue-500/30' : ''}`}>
-          <svg 
+          <svg
             className="w-6 h-6 text-white"
-            fill="none" 
-            stroke="currentColor" 
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
               d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
             />
           </svg>
           {isAISpeaking && (
-            <motion.div 
+            <motion.div
               className="absolute inset-0 rounded-full bg-blue-400/30"
               animate={{
                 scale: [1, 1.4, 1],
@@ -293,9 +293,8 @@ function MockInterview() {
             />
           )}
         </div>
-        <span className={`font-medium ${
-          isAISpeaking ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
-        }`}>
+        <span className={`font-medium ${isAISpeaking ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
+          }`}>
           {isAISpeaking ? 'AI Speaking...' : 'AI Assistant'}
         </span>
       </motion.div>
@@ -314,8 +313,8 @@ function MockInterview() {
               transition={{ duration: 1.5, repeat: Infinity }}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" 
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                 />
               </svg>
             </motion.div>
@@ -387,7 +386,7 @@ function MockInterview() {
             </h1>
             <div className="max-w-2xl mx-auto">
               <p className="text-gray-600 dark:text-gray-300 mb-8">
-                We'll conduct a mock interview based on the job requirements. 
+                We'll conduct a mock interview based on the job requirements.
                 Please ensure you're in a quiet environment and your camera and microphone are working.
               </p>
               <button
@@ -419,9 +418,8 @@ function MockInterview() {
                   )}
                   <video
                     ref={videoRef}
-                    className={`w-full aspect-video object-cover transition-opacity duration-300 ${
-                      isCameraReady && streamRef.current?.active ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`w-full aspect-video object-cover transition-opacity duration-300 ${isCameraReady && streamRef.current?.active ? 'opacity-100' : 'opacity-0'
+                      }`}
                     autoPlay
                     playsInline
                     muted
@@ -431,18 +429,17 @@ function MockInterview() {
               <div className="flex flex-col justify-center">
                 <h2 className="text-2xl font-bold mb-4">Ready to Begin</h2>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {isCameraReady 
+                  {isCameraReady
                     ? `Ready to start! You'll have ${questions.length} questions.`
                     : 'Please wait while we initialize your camera...'}
                 </p>
                 <button
                   onClick={startInterview}
                   disabled={!isCameraReady}
-                  className={`${
-                    isCameraReady 
-                      ? 'bg-green-500 hover:bg-green-600' 
+                  className={`${isCameraReady
+                      ? 'bg-green-500 hover:bg-green-600'
                       : 'bg-gray-400'
-                  } text-white px-8 py-4 rounded-lg text-lg font-medium 
+                    } text-white px-8 py-4 rounded-lg text-lg font-medium 
                     transition-all disabled:cursor-not-allowed`}
                 >
                   {isCameraReady ? 'Begin Interview' : 'Initializing...'}
@@ -484,16 +481,15 @@ function MockInterview() {
                 </div>
 
                 <div className="relative mb-8">
-                  <div className={`rounded-lg p-6 ${
-                    isAISpeaking 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800' 
+                  <div className={`rounded-lg p-6 ${isAISpeaking
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800'
                       : ''
-                  }`}>
+                    }`}>
                     <p className="text-lg text-gray-800 dark:text-gray-200">
                       {questions[currentQuestionIndex]?.question}
                     </p>
                     {isAISpeaking && (
-                      <motion.div 
+                      <motion.div
                         className="absolute left-0 top-0 w-1 h-full bg-blue-500"
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
@@ -503,8 +499,8 @@ function MockInterview() {
                 </div>
 
                 {/* Replace the old transcription display with the new visualizer */}
-                <SpeechVisualizer 
-                  isRecording={isRecording} 
+                <SpeechVisualizer
+                  isRecording={isRecording}
                   transcribedText={transcribedText}
                   isAISpeaking={isAISpeaking}
                 />
@@ -580,7 +576,7 @@ function MockInterview() {
                   muted
                 />
               </div>
-              
+
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg">
                 <h3 className="font-medium mb-2">Interview Progress</h3>
                 <div className="w-full bg-gray-200 rounded-full h-2">

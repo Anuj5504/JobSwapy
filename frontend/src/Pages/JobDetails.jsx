@@ -165,6 +165,7 @@ function JobDetails() {
   };
 
   const handleStartMockInterview = () => {
+    console.log(`${id}`);
     navigate(`/mock-interview/${id}`);
   };
 
@@ -644,12 +645,12 @@ function JobDetails() {
                       Set Reminder
                     </motion.button>
 
-                <button 
-            onClick={handleStartMockInterview}
-            className="bg-blue-600 text-white w-full px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                Start Mock Interview
-              </button>
-                    
+                    <button
+                      onClick={handleStartMockInterview}
+                      className="bg-blue-600 text-white w-full px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                      Start Mock Interview
+                    </button>
+
                     {/* {job?.applyLink && (
                       <a 
                         href={job.applyLink}

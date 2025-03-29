@@ -25,6 +25,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import ReccomendedJobListings from './Pages/ReccomendedJobListings'
 import ResumeBuilderLanding from './Pages/ResumeBuilderLanding'
 import ResumeEditor from './Pages/ResumeEditor'
+import Mockinterview from './Pages/Mockinterview'
 
 function App() {
   return (
@@ -37,7 +38,7 @@ function App() {
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={
-                    <Home />
+                  <Home />
                 } />
                 <Route path="/swipe" element={
                   <ProtectedRoute>
@@ -70,13 +71,13 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/resume-upload" element={
-                    <ResumeUpload />
+                  <ResumeUpload />
                 } />
                 <Route path="/resume-builder" element={
-                    <ResumeBuilderLanding />
+                  <ResumeBuilderLanding />
                 } />
                 <Route path="/resume-builder/:templateId" element={
-                    <ResumeEditor />
+                  <ResumeEditor />
                 } />
                 <Route path="/community/*" element={
                   <ProtectedRoute>
@@ -87,9 +88,10 @@ function App() {
                 <Route path="/roadmap/:id" element={<RoadmapDetail />} />
                 <Route path="/create-roadmap" element={<CreateRoadmap />} />
                 <Route path="/migration-guide" element={<MigrationGuide />} />
+                <Route path="/mock-interview/:jobId" element={<Mockinterview />} />
               </Routes>
             </main>
-            <ToastContainer 
+            <ToastContainer
               position="top-right"
               autoClose={5000}
               hideProgressBar={false}
