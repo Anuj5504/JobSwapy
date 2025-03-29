@@ -151,7 +151,9 @@ def get_recommendations(user_id):
                 'job_id': str(job['_id']),
                 'title': job.get('title', 'Unknown Title'),
                 'company': job.get('company', 'Unknown Company'),
-                'score': combined_score
+                'score': combined_score,
+                'applyLink':str(job['applyLink']),
+                'jobDetails': job.get('jobDetails', 'No details available')
             })
         
         job_scores.sort(key=lambda x: x['score'], reverse=True)

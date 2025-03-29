@@ -94,17 +94,37 @@ function JobDetails() {
     }
   };
 
-  const handleApplyJob = () => {
+  const handleApplyJob = async () => {
     setIsApplying(true);
-    // Simulate application submission
-    setTimeout(() => {
+    
+    try {
+      // Get user and token from localStorage
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+      
+      // Track the application via API if user is authenticated
+      if (user && user.id && token && job) {
+        await api.post(`/api/jobs/${job._id}/apply`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      // Update UI state
       markJobAsApplied(id);
-      setIsApplying(false);
+      
       // Open application URL in new tab
       if (job?.applyLink) {
         window.open(job.applyLink, '_blank');
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Error recording job application:', error);
+      // Still open the apply link even if tracking fails
+      if (job?.applyLink) {
+        window.open(job.applyLink, '_blank');
+      }
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   if (loading) {
@@ -575,7 +595,7 @@ function JobDetails() {
                       {isJobSaved ? 'Saved' : 'Save Job'}
                     </motion.button>
                     
-                    {job?.applyLink && (
+                    {/* {job?.applyLink && (
                       <a 
                         href={job.applyLink}
                         target="_blank" 
@@ -584,7 +604,7 @@ function JobDetails() {
                       >
                         View original job posting
                       </a>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </motion.div>

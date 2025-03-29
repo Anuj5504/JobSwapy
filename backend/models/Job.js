@@ -44,7 +44,31 @@ const jobSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true
-  }
+  },
+  viewCount: {
+    type: Number,
+    default: 0
+  },
+  appliedCount: {
+    type: Number,
+    default: 0
+  },
+  savedCount: {
+    type: Number,
+    default: 0
+  },
+  viewedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  appliedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  savedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
 }, {
   timestamps: true
 });

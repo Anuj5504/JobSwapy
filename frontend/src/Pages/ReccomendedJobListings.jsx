@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import api from '../services/api';
 
 const ReccomendedJobListings = () => {
   const [jobs, setJobs] = useState([]);
@@ -9,6 +10,29 @@ const ReccomendedJobListings = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [viewMode, setViewMode] = useState('row');
+
+  const handleApplyClick = async (jobId, applyLink, e) => {
+    e.preventDefault(); // Prevent the link/card click from triggering
+    e.stopPropagation(); // Prevent event bubbling to parent elements
+    console.log(jobId)
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token'); // Don't parse token as JSON
+
+      if (user && user.id && token) {
+        // Record the application
+        await api.post(`/api/jobs/${jobId}/apply`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      // Open the apply link in a new tab
+      window.open(applyLink, '_blank');
+    } catch (error) {
+      console.error('Error recording job application:', error);
+      window.open(applyLink, '_blank');
+    }
+  };
 
   useEffect(() => {
     fetchRecommendedJobs();
@@ -168,7 +192,7 @@ const ReccomendedJobListings = () => {
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           </svg>
-                          <span className="truncate">{job.location || 'Remote'}</span>
+                          <span className="truncate">{job.jobDetails.location}</span>
                         </div>
                       </div>
                       <div className="flex-shrink-0">
@@ -193,10 +217,7 @@ const ReccomendedJobListings = () => {
 
                     <div className="mt-auto pt-3">
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.open(job.applyLink, '_blank');
-                        }}
+                        onClick={(e) => handleApplyClick(job.job_id, job.applyLink, e)}
                         className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors
                           ${index < 3
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
@@ -235,7 +256,7 @@ const ReccomendedJobListings = () => {
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           </svg>
-                          <span>{job.location || 'Remote'}</span>
+                          <span>{job.jobDetails.location}</span>
                         </div>
                         <div className="text-sm">
                           <span className="text-blue-600 dark:text-blue-400 font-medium">
@@ -247,10 +268,7 @@ const ReccomendedJobListings = () => {
 
                     <div className="flex-shrink-0 w-full sm:w-auto">
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.open(job.applyLink, '_blank');
-                        }}
+                        onClick={(e) => handleApplyClick(job.job_id, job.applyLink, e)}
                         className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors
                           ${index < 3
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
