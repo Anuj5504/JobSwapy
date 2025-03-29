@@ -41,8 +41,6 @@ exports.getJobs = async (req, res) => {
   }
 };
 
-
-// Get job by ID
 exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
@@ -61,7 +59,6 @@ exports.getJobById = async (req, res) => {
   } catch (error) {
     console.error('Error fetching job:', error);
     
-    // Check if error is due to invalid ObjectId
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,

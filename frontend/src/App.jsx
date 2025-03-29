@@ -16,6 +16,7 @@ import ResumeUpload from './pages/ResumeUpload'
 import { JobProvider } from './context/JobContext'
 import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
+import ReccomendedJobListings from './Pages/ReccomendedJobListings'
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="/jobs" element={<JobListings />} />
+              <Route path="/reccomendedjobs" element={<ReccomendedJobListings />} />
               <Route path="/job/:id" element={<JobDetails />} />
               <Route path="/saved" element={
                 <ProtectedRoute>

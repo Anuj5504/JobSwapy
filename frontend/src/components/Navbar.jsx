@@ -26,7 +26,7 @@ function Navbar() {
   const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Function to get user from localStorage
   const getUserFromStorage = () => {
     const storedUser = localStorage.getItem('user');
@@ -46,7 +46,7 @@ function Navbar() {
   useEffect(() => {
     // Initial check for user
     setUser(getUserFromStorage());
-    
+
     // Listen for storage events (when localStorage changes in other tabs)
     const handleStorageChange = (e) => {
       if (e.key === 'user' || e.key === null) { // null means clear all localStorage
@@ -54,14 +54,14 @@ function Navbar() {
         setUser(currentUser);
       }
     };
-    
+
     // Listen for auth events within the same tab
     const unsubscribe = AuthEvents.subscribe((newUser) => {
       setUser(newUser);
     });
-    
+
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       unsubscribe();
@@ -82,15 +82,15 @@ function Navbar() {
     // Clear user from localStorage
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    
+
     // Update state
     setUser(null);
     setUserMenuOpen(false);
     setIsMenuOpen(false);
-    
+
     // Publish auth change
     publishAuthChange(null);
-    
+
     // Navigate to home page
     navigate('/');
   };
@@ -101,10 +101,9 @@ function Navbar() {
   }, [location.pathname]);
 
   return (
-    <nav 
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
-        isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md' : 'bg-transparent'
-      }`}
+    <nav
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md' : 'bg-transparent'
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
@@ -125,11 +124,11 @@ function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex items-center space-x-1">
               {/* Swipe Jobs */}
-              <Link 
-                to="/swipe" 
+              <Link
+                to="/swipe"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  ${location.pathname === '/swipe' 
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
+                  ${location.pathname === '/swipe'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
               >
@@ -142,11 +141,11 @@ function Navbar() {
               </Link>
 
               {/* Browse Jobs */}
-              <Link 
-                to="/jobs" 
+              <Link
+                to="/jobs"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  ${location.pathname === '/jobs' 
-                    ? 'bg-blue-600 text-white' 
+                  ${location.pathname === '/jobs'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
                   }`}
               >
@@ -158,10 +157,43 @@ function Navbar() {
                 </div>
               </Link>
 
+              <Link
+                to="/reccomendedjobs"
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname === '/reccomendedjobs'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 3l2.09 4.26 4.71.69-3.41 3.32.8 4.68L12 14.77l-4.19 2.18.8-4.68L5.2 7.95l4.71-.69L12 3z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 21l2-2.5L12 19l5-1.5 2 2.5"
+                    />
+                  </svg>
+
+                  <span>Top picks</span>
+                </div>
+              </Link>
+
               {/* Saved Jobs - Only show if user is logged in */}
               {user && (
-                <Link 
-                  to="/saved" 
+                <Link
+                  to="/saved"
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
                     ${location.pathname === '/saved'
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
@@ -192,9 +224,9 @@ function Navbar() {
                 >
                   <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium overflow-hidden">
                     {user.photoURL ? (
-                      <img 
-                        src={user.photoURL} 
-                        alt={user.name || 'User'} 
+                      <img
+                        src={user.photoURL}
+                        alt={user.name || 'User'}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -224,22 +256,22 @@ function Navbar() {
                             )}
                           </div>
                         ) : null}
-                        
-                        <Link 
-                          to="/profile" 
+
+                        <Link
+                          to="/profile"
                           className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           Your Profile
                         </Link>
-                        <Link 
-                          to="/settings" 
+                        <Link
+                          to="/settings"
                           className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           Settings
                         </Link>
-                        <button 
+                        <button
                           className="w-full text-left block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={handleLogout}
                         >
@@ -259,7 +291,7 @@ function Navbar() {
                 >
                   Log in
                 </Link>
-                
+
                 <Link
                   to="/signup"
                   className="px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-colors"
@@ -305,37 +337,34 @@ function Navbar() {
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link
                 to="/swipe"
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  location.pathname === '/swipe'
+                className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/swipe'
                     ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
+                  }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Swipe Jobs
               </Link>
               <Link
                 to="/jobs"
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  location.pathname === '/jobs'
+                className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/jobs'
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
+                  }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Browse Jobs
               </Link>
-              
+
               {/* Conditional Menu Items - Only show if logged in */}
               {user ? (
                 <>
                   <Link
                     to="/saved"
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${
-                      location.pathname === '/saved'
+                    className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/saved'
                         ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                         : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
+                      }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Saved Jobs
