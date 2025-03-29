@@ -10,7 +10,11 @@ const jobRoutes = require('./routes/job');
 const userRoutes = require('./routes/user');
 const roadmapRoutes = require('./routes/roadmap');
 const communityRoutes = require('./routes/communityRoutes');
+<<<<<<< HEAD
 const interviewRoutes = require('./routes/interview.js');
+=======
+const reminderRoutes = require('./routes/reminderRoutes');
+>>>>>>> 4c0ab2ce5a3fdbe5211dda5495759290d0289722
 const app = express();
 
 mongoose.set('bufferTimeoutMS', 30000);
@@ -74,7 +78,11 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/community', communityRoutes);
+<<<<<<< HEAD
 app.use('/api/interview', interviewRoutes);
+=======
+app.use('/api/reminders', reminderRoutes);
+>>>>>>> 4c0ab2ce5a3fdbe5211dda5495759290d0289722
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

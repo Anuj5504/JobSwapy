@@ -191,7 +191,7 @@ function Home() {
       </div>
 
       {/* REDESIGNED: How It Works Section */}
-      <div id="how-it-works" className="py-24 bg-white dark:bg-gray-800 animate-on-scroll relative overflow-hidden">
+      <div id="how-it-works" className="hidden md:block py-24 bg-white dark:bg-gray-800 animate-on-scroll relative overflow-hidden">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

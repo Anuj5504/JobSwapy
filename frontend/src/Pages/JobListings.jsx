@@ -13,6 +13,7 @@ function JobListings() {
   const [paginationInfo, setPaginationInfo] = useState(null);
   const [isRecommended, setIsRecommended] = useState(false);
   const [expandedJobId, setExpandedJobId] = useState(null);
+  const [sortBy, setSortBy] = useState('ranking');
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +31,7 @@ function JobListings() {
     entry: false,
     mid: false,
     senior: false,
+    popularity: false,
     showLocationTypeDropdown: false,
     showSeniorityDropdown: false,
     showCompanyDropdown: false
@@ -82,6 +84,14 @@ function JobListings() {
         if (sourceFilters) queryParams.append('source', sourceFilters);
         if (skillFilter) queryParams.append('skills', skillFilter);
         if (seniorityFilters) queryParams.append('seniority', seniorityFilters);
+        
+        // Always set sorting when the popularity filter is on or sortBy is ranking
+        if (filters.popularity) {
+          setSortBy('ranking');
+          queryParams.append('sort', 'ranking');
+        } else if (sortBy === 'ranking') {
+          queryParams.append('sort', 'ranking');
+        }
         
         // Add skill match percentage if user is logged in and percentage > 0
         if (user?.id && skillMatchPercentage > 0) {
@@ -151,7 +161,11 @@ function JobListings() {
           applyLink: job.applyLink || '#',
           companyDetails: job.companyDetails || {},
           source: job.source || 'Unknown source',
-          skillMatchPercentage: job.skillMatchPercentage
+          skillMatchPercentage: job.skillMatchPercentage,
+          viewCount: job.viewCount || 0,
+          appliedCount: job.appliedCount || 0,
+          savedCount: job.savedCount || 0,
+          rankingScore: job.rankingScore || 0
         }));
 
         // Sort jobs by skill match percentage if filtering by skills
@@ -177,7 +191,7 @@ function JobListings() {
     };
 
     fetchJobs();
-  }, [currentPage, searchQuery, locationQuery, filters, skillFilter, skillMatchPercentage, skillMatchRange]);
+  }, [currentPage, searchQuery, locationQuery, filters, skillFilter, skillMatchPercentage, skillMatchRange, sortBy]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -185,10 +199,26 @@ function JobListings() {
   };
 
   const toggleFilter = (filterName) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterName]: !prev[filterName]
-    }));
+    if (filterName === 'popularity') {
+      const newValue = !filters.popularity;
+      
+      // Update the sortBy state based on the popularity filter
+      if (newValue) {
+        setSortBy('ranking');
+      } else {
+        setSortBy('');
+      }
+      
+      setFilters(prev => ({
+        ...prev,
+        [filterName]: newValue
+      }));
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [filterName]: !prev[filterName]
+      }));
+    }
     setCurrentPage(1);
   };
 
@@ -204,7 +234,7 @@ function JobListings() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const token = localStorage.getItem('token'); // Don't parse token as JSON
-
+        
       if (user && user.id && token) {
         // Record the application
         await api.post(`/api/jobs/${jobId}/apply`, {}, {
@@ -339,6 +369,39 @@ function JobListings() {
       </div>
     );
   };
+
+  // Add a helper function to format engagement counts
+  const formatCount = (count) => {
+    if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}k`;
+    }
+    return count.toString();
+  };
+
+  // Add a component to show engagement metrics in each job card
+  const EngagementMetrics = ({ viewCount, appliedCount, savedCount }) => (
+    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-2">
+      <div className="flex items-center">
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        {formatCount(viewCount)}
+      </div>
+      <div className="flex items-center">
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+        {formatCount(savedCount)}
+      </div>
+      <div className="flex items-center">
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {formatCount(appliedCount)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="container mx-auto p-10 md:p-20">
@@ -499,6 +562,18 @@ function JobListings() {
             >
               Internshala
             </button>
+            <button
+              onClick={() => toggleFilter('popularity')}
+              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1 ${filters.popularity
+                ? 'bg-blue-500 text-white'
+                : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                } hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors`}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              Popular
+            </button>
           </div>
           
           <button
@@ -516,6 +591,7 @@ function JobListings() {
                 entry: false,
                 mid: false,
                 senior: false,
+                popularity: false,
                 showLocationTypeDropdown: false,
                 showSeniorityDropdown: false,
                 showCompanyDropdown: false
@@ -525,6 +601,7 @@ function JobListings() {
               setSkillFilter('');
               setSkillMatchPercentage(0);
               setSkillMatchRange('');
+              setSortBy('');
             }}
             className="px-6 py-3 rounded-full text-white hover:bg-gray-800 transition-colors"
           >
@@ -623,6 +700,26 @@ function JobListings() {
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Found {paginationInfo?.totalDocs || 0} jobs
         </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSortBy(sortBy === 'ranking' ? '' : 'ranking')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+              sortBy === 'ranking'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+            } hover:bg-blue-400 dark:hover:bg-blue-600 transition-colors`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span>Popularity</span>
+            {sortBy === 'ranking' && (
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Job Cards */}
@@ -645,9 +742,8 @@ function JobListings() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {jobs.map(job => (
-            <Link
+            <div
               key={job.id}
-              to={`/job/${job.id}`}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="flex justify-between items-start mb-3">
@@ -662,7 +758,9 @@ function JobListings() {
                       </span>
                     )}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job.title}</h3>
+                  <Link to={`/job/${job.id}`} className="block">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">{job.title}</h3>
+                  </Link>
                 </div>
               </div>
 
@@ -695,15 +793,21 @@ function JobListings() {
                   )}
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{job.company}</span>
                 </div>
-                <a
-                  href="#"
+                <button
                   onClick={(e) => handleApplyClick(job.id, job.applyLink, e)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   Apply
-                </a>
+                </button>
               </div>
-            </Link>
+
+              {/* Add engagement metrics */}
+              <EngagementMetrics
+                viewCount={job.viewCount}
+                savedCount={job.savedCount}
+                appliedCount={job.appliedCount}
+              />
+            </div>
           ))}
         </div>
       )}

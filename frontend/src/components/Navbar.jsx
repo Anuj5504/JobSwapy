@@ -205,11 +205,11 @@ function Navbar() {
                   </div>
                 </div>
               </div>
-              <Link 
-                to="/roadmaps" 
+              <Link
+                to="/roadmaps"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  ${location.pathname.includes('/roadmap') 
-                    ? 'bg-purple-600 text-white' 
+                  ${location.pathname.includes('/roadmap')
+                    ? 'bg-purple-600 text-white'
                     : 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800'
                   }`}
               >
@@ -306,7 +306,20 @@ function Navbar() {
                             {/* <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                               </svg> */}
-                            <span>Saved</span>
+                            <span>Saved Jobs</span>
+                          </div>
+                        </Link>
+
+                        <Link
+                          to="/applied"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <div className="flex items-center space-x-1">
+                            {/* <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                              </svg> */}
+                            <span>Applied Jobs</span>
                           </div>
                         </Link>
 
@@ -442,6 +455,24 @@ function Navbar() {
                   </div>
                 </Link>
               )}
+               
+               {user && (
+                <Link
+                  to="/applied"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/applied'
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    Applied Jobs
+                  </div>
+                </Link>
+              )}
+
 
               <div className="px-3 py-2">
                 <DarkModeToggle />
@@ -514,4 +545,4 @@ function Navbar() {
   );
 }
 
-export default Navbar; 
+export default Navbar;

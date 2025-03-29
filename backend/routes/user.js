@@ -30,6 +30,19 @@ router.get('/:id/savedJobs', authenticateToken, async (req, res) => {
   }
 });
 
+// Get user's applied jobs
+router.get('/:id/appliedJobs', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate('AppliedJobs');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ appliedJobs: user.AppliedJobs });
+  } catch (error) {
+    console.error('Error fetching applied jobs:', error);
+    res.status(500).json({ message: 'Error fetching applied jobs' });
+  }
+});
 
 // Update user profile
 router.put('/:id', authenticateToken, async (req, res) => {
