@@ -50,6 +50,8 @@ const ReccomendedJobListings = () => {
       if (response.data?.recommendations) {
         setJobs(response.data.recommendations);
       }
+      console.log(`http://127.0.0.1:3000/api/recommendations/${user.id}`);
+      console.log("Recommended jobs fetched:", response.data.recommendations);
     } catch (error) {
       console.error('Error fetching recommended jobs:', error);
     } finally {

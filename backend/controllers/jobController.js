@@ -311,11 +311,15 @@ const recordJobApplication = async (req, res) => {
         $inc: { appliedCount: 1 }
       });
 
-      // Also update user's applied jobs if you have that field in user model
+      // Update user's AppliedJobs array to match the model definition
       await User.findByIdAndUpdate(userId, {
-        $addToSet: { appliedJobs: jobId }
+        $addToSet: { AppliedJobs: jobId }
       });
     }
+
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { AppliedJobs: jobId }
+    });
 
     return res.status(200).json({ message: 'Job application recorded successfully' });
   } catch (error) {
