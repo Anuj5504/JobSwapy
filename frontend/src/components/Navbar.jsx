@@ -158,6 +158,25 @@ function Navbar() {
                 </div>
               </Link>
 
+              {/* Community - Only show if user is logged in */}
+              {user && (
+                <Link 
+                  to="/community" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
+                    ${location.pathname.startsWith('/community')
+                      ? 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100'
+                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span>Community</span>
+                  </div>
+                </Link>
+              )}
+
               {/* Saved Jobs - Only show if user is logged in */}
               {user && (
                 <Link 
@@ -251,18 +270,17 @@ function Navbar() {
                 </AnimatePresence>
               </div>
             ) : (
-              /* Login/Signup buttons for non-authenticated users */
-              <div className="flex items-center space-x-2">
-                <Link
-                  to="/login"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              /* Auth buttons for guest users - Desktop */
+              <div className="flex space-x-2">
+                <Link 
+                  to="/login" 
+                  className="text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Log in
                 </Link>
-                
-                <Link
-                  to="/signup"
-                  className="px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-colors"
+                <Link 
+                  to="/signup" 
+                  className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Sign up
                 </Link>
@@ -270,111 +288,164 @@ function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
-            <DarkModeToggle />
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="ml-2 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
             >
               <span className="sr-only">Open main menu</span>
-              {!isMobileMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              ) : (
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMobileMenuOpen ? (
+                <svg className="block h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
+              ) : (
+                <svg className="block h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               )}
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden"
+            className="md:hidden bg-white dark:bg-gray-900 shadow-lg overflow-hidden"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               <Link
                 to="/swipe"
                 className={`block px-3 py-2 rounded-md text-base font-medium ${
                   location.pathname === '/swipe'
                     ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
-                Swipe Jobs
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Swipe Jobs
+                </div>
               </Link>
+
               <Link
                 to="/jobs"
                 className={`block px-3 py-2 rounded-md text-base font-medium ${
                   location.pathname === '/jobs'
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
-                Browse Jobs
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Browse Jobs
+                </div>
               </Link>
-              
-              {/* Conditional Menu Items - Only show if logged in */}
+
+              {/* Community - Mobile view */}
+              {user && (
+                <Link
+                  to="/community"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    location.pathname.startsWith('/community')
+                      ? 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Community
+                  </div>
+                </Link>
+              )}
+
+              {user && (
+                <Link
+                  to="/saved"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    location.pathname === '/saved'
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    Saved Jobs
+                  </div>
+                </Link>
+              )}
+
+              <div className="px-3 py-2">
+                <DarkModeToggle />
+              </div>
+            </div>
+            <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-800">
               {user ? (
                 <>
-                  <Link
-                    to="/saved"
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${
-                      location.pathname === '/saved'
-                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Saved Jobs
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Your Profile
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Settings
-                  </Link>
-                  <button
-                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={handleLogout}
-                  >
-                    Sign out
-                  </button>
+                  <div className="flex items-center px-5">
+                    <div className="flex-shrink-0">
+                      {user.photoURL ? (
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src={user.photoURL}
+                          alt={user.name || "User"}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+                          {user.name ? user.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'U')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-base font-medium text-gray-800 dark:text-white">{user.name || "User"}</div>
+                      <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{user.email}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1 px-2">
+                    <Link
+                      to="/profile"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      Your Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      Sign out
+                    </button>
+                  </div>
                 </>
               ) : (
-                /* Login/Signup options for mobile */
-                <div className="pt-2 space-y-2">
+                <div className="flex justify-center space-x-4 px-5 py-3">
                   <Link
                     to="/login"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 px-4 py-2 rounded-md text-sm font-medium w-full text-center"
                   >
                     Log in
                   </Link>
                   <Link
                     to="/signup"
-                    className="block px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium w-full text-center"
                   >
                     Sign up
                   </Link>

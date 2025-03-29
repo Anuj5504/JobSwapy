@@ -93,6 +93,30 @@ function SavedJobs() {
     }
   };
   
+  // Add handler for Apply button clicks
+  const handleApplyClick = async (jobId, applyLink, e) => {
+    e.preventDefault(); // Prevent default link behavior
+    
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token'); // Get token as string
+      
+      if (user && user.id && token) {
+        // Record the application
+        await api.post(`/api/jobs/${jobId}/apply`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      // Open the apply link in a new tab
+      window.open(applyLink, '_blank');
+    } catch (error) {
+      console.error('Error recording job application:', error);
+      // Still open the apply link even if tracking fails
+      window.open(applyLink, '_blank');
+    }
+  };
+  
   if (loading) {
     return (
       <div className="container mx-auto p-4 max-w-3xl flex justify-center items-center" style={{ minHeight: '60vh' }}>
@@ -164,7 +188,7 @@ function SavedJobs() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.open(job.applyLink, '_blank')}
+                onClick={(e) => handleApplyClick(job.id, job.applyLink, e)}
                 className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
               >
                 Apply
