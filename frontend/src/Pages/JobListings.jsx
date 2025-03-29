@@ -23,9 +23,20 @@ function JobListings() {
     office: false,
     linkedin: false,
     indeed: false,
-    glassdoor: false
+    glassdoor: false,
+    naukri: false,
+    internshala: false,
+    other: false,
+    entry: false,
+    mid: false,
+    senior: false,
+    showLocationTypeDropdown: false,
+    showSeniorityDropdown: false,
+    showCompanyDropdown: false
   });
   const [skillFilter, setSkillFilter] = useState('');
+  const [skillMatchPercentage, setSkillMatchPercentage] = useState(0);
+  const [skillMatchRange, setSkillMatchRange] = useState('');
 
   // Add handlePageChange function
   const handlePageChange = (page) => {
@@ -40,24 +51,72 @@ function JobListings() {
         const user = JSON.parse(localStorage.getItem('user'));
         let response;
 
+        // Build source filter parameter
+        const sourceFilters = Object.entries(filters)
+          .filter(([key, value]) => value && ['linkedin', 'indeed', 'glassdoor', 'naukri', 'internshala', 'other'].includes(key))
+          .map(([key]) => key)
+          .join(',');
+
+        // Build work type filter parameter
+        const workTypeFilters = Object.entries(filters)
+          .filter(([key, value]) => value && ['remote', 'hybrid', 'office'].includes(key))
+          .map(([key]) => key)
+          .join(',');
+          
+        // Build seniority filter parameter
+        const seniorityFilters = Object.entries(filters)
+          .filter(([key, value]) => value && ['entry', 'mid', 'senior'].includes(key))
+          .map(([key]) => key)
+          .join(',');
+
         // Build query parameters
         const queryParams = new URLSearchParams({
           page: currentPage,
           limit: 20,
           search: searchQuery,
-          location: locationQuery,
-          workType: Object.entries(filters)
-            .filter(([key, value]) => value && ['remote', 'hybrid', 'office'].includes(key))
-            .map(([key]) => key)
-            .join(','),
-          timePosted: filters.time,
-          skills: skillFilter
+          location: locationQuery
         });
+
+        // Only add parameters if they have values
+        if (workTypeFilters) queryParams.append('workType', workTypeFilters);
+        if (sourceFilters) queryParams.append('source', sourceFilters);
+        if (skillFilter) queryParams.append('skills', skillFilter);
+        if (seniorityFilters) queryParams.append('seniority', seniorityFilters);
+        
+        // Add skill match percentage if user is logged in and percentage > 0
+        if (user?.id && skillMatchPercentage > 0) {
+          queryParams.append('skillMatchPercentage', skillMatchPercentage);
+          queryParams.append('userId', user.id);
+        }
+        
+        // Add skill match range if selected and user is logged in
+        if (user?.id && skillMatchRange) {
+          let minMatch = 0;
+          let maxMatch = 100;
+          
+          if (skillMatchRange === 'less5') {
+            maxMatch = 5;
+          } else if (skillMatchRange === '5to25') {
+            minMatch = 5;
+            maxMatch = 25;
+          } else if (skillMatchRange === '25to50') {
+            minMatch = 25;
+            maxMatch = 50;
+          } else if (skillMatchRange === '50to75') {
+            minMatch = 50;
+            maxMatch = 75;
+          } else if (skillMatchRange === '75plus') {
+            minMatch = 75;
+            maxMatch = 100;
+          }
+          
+          queryParams.append('skillMatchMin', minMatch);
+          queryParams.append('skillMatchMax', maxMatch);
+          queryParams.append('userId', user.id);
+        }
 
         if (user?.id) {
           response = await api.get(`/api/jobs/getRecommendation/${user.id}?${queryParams}`);
-
-          console.log(response.data);
           
           setIsRecommended(true);
           try {
@@ -79,9 +138,6 @@ function JobListings() {
           return;
         }
 
-        setPaginationInfo(response.data.pagination);
-        setTotalPages(response.data.pagination.pages);
-
         const processedJobs = response.data.data.map(job => ({
           id: job._id,
           title: job.title || 'No title',
@@ -94,10 +150,24 @@ function JobListings() {
           postedDate: job.jobDetails?.postedDate || 'Date not specified',
           applyLink: job.applyLink || '#',
           companyDetails: job.companyDetails || {},
-          source: job.source || 'Unknown source'
+          source: job.source || 'Unknown source',
+          skillMatchPercentage: job.skillMatchPercentage
         }));
 
-        setJobs(processedJobs);
+        // Sort jobs by skill match percentage if filtering by skills
+        if (skillMatchPercentage > 0) {
+          setJobs(processedJobs.sort((a, b) => 
+            (b.skillMatchPercentage || 0) - (a.skillMatchPercentage || 0)
+          ));
+        } else {
+          setJobs(processedJobs);
+        }
+        
+        // Make sure pagination is set consistently regardless of endpoint
+        if (response.data.pagination) {
+          setPaginationInfo(response.data.pagination);
+          setTotalPages(response.data.pagination.pages);
+        }
       } catch (error) {
         console.error('Error fetching jobs:', error);
         setJobs([]);
@@ -107,7 +177,7 @@ function JobListings() {
     };
 
     fetchJobs();
-  }, [currentPage, searchQuery, locationQuery, filters, skillFilter]);
+  }, [currentPage, searchQuery, locationQuery, filters, skillFilter, skillMatchPercentage, skillMatchRange]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -283,13 +353,38 @@ function JobListings() {
       {/* Filters */}
       <div className="mb-8">
         <div className="flex flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="filter e.g., skill, company"
-            value={skillFilter}
-            onChange={(e) => setSkillFilter(e.target.value)}
-            className="px-4 py-2 rounded-full bg-yellow-50 dark:bg-yellow-900/20 text-gray-700 dark:text-gray-300 border border-yellow-200 dark:border-yellow-800 focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm"
-          />
+          {skillFilter && (
+            <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+              <span>Skill: {skillFilter}</span>
+              <button 
+                onClick={() => setSkillFilter('')}
+                className="ml-2 text-white hover:text-gray-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+          {skillMatchRange && (
+            <div className="bg-green-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+              <span>
+                Skill Match: {skillMatchRange === 'less5' ? 'Less than 5%' : 
+                  skillMatchRange === '5to25' ? '5% - 25%' : 
+                  skillMatchRange === '25to50' ? '25% - 50%' : 
+                  skillMatchRange === '50to75' ? '50% - 75%' : 
+                  skillMatchRange === '75plus' ? '75% or more' : ''}
+              </span>
+              <button 
+                onClick={() => setSkillMatchRange('')}
+                className="ml-2 text-white hover:text-gray-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => toggleFilter('remote')}
@@ -298,7 +393,7 @@ function JobListings() {
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 } hover:bg-yellow-500 dark:hover:bg-yellow-400 transition-colors`}
             >
-              <span>Remote</span>
+              <span>Remote / WFH</span>
               {filters.remote && (
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -326,7 +421,7 @@ function JobListings() {
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 } hover:bg-yellow-500 dark:hover:bg-yellow-400 transition-colors`}
             >
-              <span>Office</span>
+              <span>In-Office</span>
               {filters.office && (
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -362,8 +457,141 @@ function JobListings() {
             >
               Glassdoor
             </button>
+            <button
+              onClick={() => toggleFilter('naukri')}
+              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1 ${filters.naukri
+                ? 'bg-blue-500 text-white'
+                : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                } hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors`}
+            >
+              Naukri
+            </button>
+            <button
+              onClick={() => toggleFilter('internshala')}
+              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1 ${filters.internshala
+                ? 'bg-blue-500 text-white'
+                : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                } hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors`}
+            >
+              Internshala
+            </button>
           </div>
+          
+          <button
+            onClick={() => {
+              setFilters({
+                remote: false,
+                hybrid: false,
+                office: false,
+                linkedin: false,
+                indeed: false,
+                glassdoor: false,
+                naukri: false,
+                internshala: false,
+                other: false,
+                entry: false,
+                mid: false,
+                senior: false,
+                showLocationTypeDropdown: false,
+                showSeniorityDropdown: false,
+                showCompanyDropdown: false
+              });
+              setSearchQuery('');
+              setLocationQuery('');
+              setSkillFilter('');
+              setSkillMatchPercentage(0);
+              setSkillMatchRange('');
+            }}
+            className="px-6 py-3 rounded-full text-white hover:bg-gray-800 transition-colors"
+          >
+            Reset
+          </button>
         </div>
+
+        {/* Skill Match Percentage Slider */}
+        {JSON.parse(localStorage.getItem('user'))?.id && (
+          <div className="mt-6 px-4 py-5 bg-gray-800 rounded-lg">
+            <div className="flex justify-between items-center mb-3">
+              <label className="text-white font-medium">Skill Match Range</label>
+              {skillMatchRange && (
+                <span className="text-white font-bold">
+                  {skillMatchRange === 'less5' ? 'Less than 5%' : 
+                   skillMatchRange === '5to25' ? '5% - 25%' : 
+                   skillMatchRange === '25to50' ? '25% - 50%' : 
+                   skillMatchRange === '50to75' ? '50% - 75%' : 
+                   skillMatchRange === '75plus' ? '75% or more' : ''}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              <button 
+                onClick={() => {
+                  setSkillMatchRange(skillMatchRange === 'less5' ? '' : 'less5');
+                  setSkillMatchPercentage(0); // Reset the old slider value
+                }}
+                className={`py-2 px-3 rounded text-sm ${
+                  skillMatchRange === 'less5' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                &lt;5%
+              </button>
+              <button 
+                onClick={() => {
+                  setSkillMatchRange(skillMatchRange === '5to25' ? '' : '5to25');
+                  setSkillMatchPercentage(0); // Reset the old slider value
+                }}
+                className={`py-2 px-3 rounded text-sm ${
+                  skillMatchRange === '5to25' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                5-25%
+              </button>
+              <button 
+                onClick={() => {
+                  setSkillMatchRange(skillMatchRange === '25to50' ? '' : '25to50');
+                  setSkillMatchPercentage(0); // Reset the old slider value
+                }}
+                className={`py-2 px-3 rounded text-sm ${
+                  skillMatchRange === '25to50' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                25-50%
+              </button>
+              <button 
+                onClick={() => {
+                  setSkillMatchRange(skillMatchRange === '50to75' ? '' : '50to75');
+                  setSkillMatchPercentage(0); // Reset the old slider value
+                }}
+                className={`py-2 px-3 rounded text-sm ${
+                  skillMatchRange === '50to75' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                50-75%
+              </button>
+              <button 
+                onClick={() => {
+                  setSkillMatchRange(skillMatchRange === '75plus' ? '' : '75plus');
+                  setSkillMatchPercentage(0); // Reset the old slider value
+                }}
+                className={`py-2 px-3 rounded text-sm ${
+                  skillMatchRange === '75plus' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                ≥75%
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Results Info */}
@@ -404,6 +632,11 @@ function JobListings() {
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                         {job.source}
                     </span>
+                    {job.skillMatchPercentage !== undefined && (
+                      <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {job.skillMatchPercentage}% match
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job.title}</h3>
                 </div>

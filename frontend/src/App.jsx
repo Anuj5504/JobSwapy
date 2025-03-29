@@ -13,6 +13,10 @@ import SwipeInterface from './pages/SwipeInterface'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ResumeUpload from './pages/ResumeUpload'
+import RoadmapList from './Pages/RoadmapList'
+import RoadmapDetail from './Pages/RoadmapDetail'
+import CreateRoadmap from './Pages/CreateRoadmap'
+import MigrationGuide from './Pages/MigrationGuide'
 import { JobProvider } from './context/JobContext'
 import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -61,6 +65,10 @@ function App() {
               <Route path="/resume-upload" element={
                   <ResumeUpload />
               } />
+              <Route path="/roadmaps" element={<RoadmapList />} />
+              <Route path="/roadmap/:id" element={<RoadmapDetail />} />
+              <Route path="/create-roadmap" element={<CreateRoadmap />} />
+              <Route path="/migration-guide" element={<MigrationGuide />} />
             </Routes>
           </main>
           <ToastContainer 
