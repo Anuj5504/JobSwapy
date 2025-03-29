@@ -128,14 +128,41 @@ router.get('/getRecommendation/:id', async (req, res) => {
         ? { $and: [baseQuery, additionalFilters] }
         : baseQuery;
       
-      // Query with pagination and filters
-      const recommendations = await Job.find(finalQuery)
-        .sort({ 'jobDetails.postedDate': -1 }) // Sort by newest first
-        .skip(skip)
-        .limit(limit);
-      
       // Get total count for pagination
       const totalRecommendations = await Job.countDocuments(finalQuery);
+      
+      // Query with pagination and filters based on sort parameter
+      let recommendations;
+      const sortParam = req.query.sort || '';
+      
+      if (sortParam === 'ranking') {
+        // Sort by ranking score using aggregation
+        const rankingResults = await Job.aggregate([
+          { $match: finalQuery },
+          { $addFields: {
+              // Calculate ranking score using weighted formula
+              rankingScore: {
+                $add: [
+                  { $multiply: [{ $ifNull: ["$appliedCount", 0] }, 5] },
+                  { $multiply: [{ $ifNull: ["$savedCount", 0] }, 3] },
+                  { $multiply: [{ $ifNull: ["$viewCount", 0] }, 1] }
+                ]
+              }
+            }
+          },
+          { $sort: { rankingScore: -1 } },
+          { $skip: skip },
+          { $limit: limit }
+        ]);
+        
+        recommendations = rankingResults;
+      } else {
+        // Default sort by posted date
+        recommendations = await Job.find(finalQuery)
+          .sort({ 'jobDetails.postedDate': -1 })
+          .skip(skip)
+          .limit(limit);
+      }
       
       // Handle skill match percentage if provided
       let jobsWithMatchPercentage = recommendations;
@@ -145,11 +172,16 @@ router.get('/getRecommendation/:id', async (req, res) => {
       if (user.skills && user.skills.length > 0) {
         // Calculate match percentage for each job
         jobsWithMatchPercentage = recommendations.map(job => {
-          const jobSkills = job.skills || [];
+          const jobObj = sortParam === 'ranking' ? job : job.toObject();
+          const jobSkills = jobObj.skills || [];
           
           // Find exact matches between user skills and job skills
           const matchedSkills = user.skills.filter(skill => 
-            jobSkills.some(jobSkill => jobSkill.toLowerCase() === skill.toLowerCase())
+            jobSkills.some(jobSkill => 
+              typeof jobSkill === 'string' && 
+              typeof skill === 'string' && 
+              jobSkill.toLowerCase() === skill.toLowerCase()
+            )
           );
           
           // Calculate percentage based on job's required skills
@@ -159,7 +191,7 @@ router.get('/getRecommendation/:id', async (req, res) => {
           
           // Add match percentage to job object
           return {
-            ...job.toObject(),
+            ...jobObj,
             skillMatchPercentage: matchPercentage
           };
         });

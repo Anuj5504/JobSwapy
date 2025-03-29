@@ -87,15 +87,44 @@ exports.getJobs = async (req, res) => {
       filter.skills = { $in: req.query.skills.split(',').map(skill => new RegExp(skill.trim(), 'i')) };
     }
 
-    // Get jobs with pagination and filters
-    let jobs = await Job.find(filter)
-      .sort({ 'jobDetails.postedDate': -1 }) // Sort by newest first
-      .skip(skip)
-      .limit(limit);
-
-    // Handle skill match percentage filter if provided
+    // Get jobs count for pagination
     let totalJobs = await Job.countDocuments(filter);
+
+    // Get jobs with pagination and filters
+    // Use aggregation to calculate ranking score and sort by it
+    let jobsQuery;
+    const sortParam = req.query.sort || '';
     
+    if (sortParam === 'ranking') {
+      // Use aggregation pipeline with ranking score
+      jobsQuery = Job.aggregate([
+        { $match: filter },
+        { $addFields: {
+            // Calculate ranking score using weighted formula
+            // Formula: (5 * appliedCount) + (3 * savedCount) + (1 * viewCount)
+            rankingScore: {
+              $add: [
+                { $multiply: [{ $ifNull: ["$appliedCount", 0] }, 5] },
+                { $multiply: [{ $ifNull: ["$savedCount", 0] }, 3] },
+                { $multiply: [{ $ifNull: ["$viewCount", 0] }, 1] }
+              ]
+            }
+          }
+        },
+        { $sort: { rankingScore: -1 } }, // Sort by ranking score in descending order
+        { $skip: skip },
+        { $limit: limit }
+      ]);
+    } else {
+      // Default sort by newest first
+      jobsQuery = Job.find(filter)
+        .sort({ 'createdAt': -1 })
+        .skip(skip)
+        .limit(limit);
+    }
+    
+    let jobs = await jobsQuery;
+
     // Check if we need to calculate skill match percentages
     const hasSkillMatchFilter = req.query.skillMatchPercentage || (req.query.skillMatchMin && req.query.skillMatchMax);
     
@@ -124,7 +153,7 @@ exports.getJobs = async (req, res) => {
             
             // Add match percentage to job object
             return {
-              ...job.toObject(),
+              ...job,
               skillMatchPercentage: matchPercentage
             };
           });
