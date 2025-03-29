@@ -1,0 +1,634 @@
+{
+  "roadmaps": [
+    {
+      "id": "frontend",
+      "title": "Frontend Engineer",
+      "description": "A comprehensive roadmap to becoming a frontend engineer",
+      "difficulty": "intermediate",
+      "estimatedHours": 80,
+      "prerequisites": ["HTML basics", "CSS fundamentals", "JavaScript knowledge"],
+      "author": {
+        "name": "TLE-BlueBit Team",
+        "role": "Core Development Team"
+      },
+      "resources": [
+        {
+          "title": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "type": "article",
+          "isPaid": false,
+          "description": "The Mozilla Developer Network documentation on web technologies."
+        },
+        {
+          "title": "Frontend Masters",
+          "url": "https://frontendmasters.com",
+          "type": "course",
+          "isPaid": true,
+          "description": "In-depth, modern frontend engineering courses."
+        },
+        {
+          "title": "React Documentation",
+          "url": "https://reactjs.org/docs",
+          "type": "article",
+          "isPaid": false,
+          "description": "Official React documentation and tutorials."
+        }
+      ],
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "HTML & CSS Basics" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "JavaScript Fundamentals" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "DOM Manipulation" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Frontend Framework (React/Vue/Angular)" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "State Management" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "API Integration" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "Testing (Jest, React Testing Library)" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "Performance Optimization & Deployment" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "backend",
+      "title": "Backend Engineer",
+      "description": "A comprehensive roadmap to becoming a backend engineer",
+      "difficulty": "advanced",
+      "estimatedHours": 100,
+      "prerequisites": ["Programming basics", "Command line proficiency", "Git basics"],
+      "author": {
+        "name": "Emily Johnson",
+        "role": "Tech Lead",
+        "avatar": "https://randomuser.me/api/portraits/women/2.jpg"
+      },
+      "resources": [
+        {
+          "title": "Node.js Documentation",
+          "url": "https://nodejs.org/en/docs/",
+          "type": "article",
+          "isPaid": false,
+          "description": "Official Node.js documentation."
+        },
+        {
+          "title": "SQL and NoSQL Databases",
+          "url": "https://example.com/database-course",
+          "type": "course",
+          "isPaid": true,
+          "description": "Comprehensive course on database design and implementation."
+        },
+        {
+          "title": "RESTful API Design",
+          "url": "https://example.com/api-video",
+          "type": "video",
+          "isPaid": false,
+          "description": "Learn best practices for designing RESTful APIs."
+        },
+        {
+          "title": "Docker & Kubernetes",
+          "url": "https://example.com/containers",
+          "type": "tool",
+          "isPaid": false,
+          "description": "Introduction to containerization with Docker and Kubernetes."
+        }
+      ],
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Programming Language (Node.js, Python, Java, etc.)" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Databases (SQL & NoSQL)" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "API Development (REST, GraphQL)" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Authentication & Authorization" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "Server Management & Deployment" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Security Best Practices" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "type": "output",
+          "data": { "label": "Monitoring & Performance Optimization" },
+          "position": { "x": 250, "y": 600 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" }
+      ]
+    },
+    {
+      "id": "fullstack",
+      "title": "Full Stack Developer",
+      "description": "A comprehensive roadmap to becoming a full stack developer",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "HTML, CSS & JavaScript" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Frontend Framework (React/Vue/Angular)" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "Backend Language (Node.js, Python, etc.)" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Databases & ORM" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "API Development" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Authentication & State Management" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "DevOps Basics & Deployment" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "Testing & Production Optimization" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "devops",
+      "title": "DevOps Engineer",
+      "description": "A comprehensive roadmap to becoming a DevOps engineer",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Linux & Command Line Basics" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Version Control Systems (Git)" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "CI/CD Pipelines" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Containerization (Docker)" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "Container Orchestration (Kubernetes)" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Infrastructure as Code (Terraform, Ansible)" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "Cloud Providers (AWS, Azure, GCP)" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "Monitoring & Logging" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "ai-engineer",
+      "title": "AI Engineer",
+      "description": "A comprehensive roadmap to becoming an AI Engineer",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Programming (Python)" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Mathematics for AI (Linear Algebra, Calculus, Statistics)" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "Machine Learning Fundamentals" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Deep Learning" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "ML/DL Frameworks (TensorFlow, PyTorch)" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "MLOps & Deployment" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "Ethics in AI" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "Advanced Applications (NLP, Computer Vision)" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "data-scientist",
+      "title": "Data Analyst",
+      "description": "A comprehensive roadmap to becoming a data analyst",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Statistics & Probability" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Programming (Python/R)" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "Data Manipulation & Cleaning" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Data Visualization (Tableau, PowerBI)" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "SQL & Database Querying" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Exploratory Data Analysis" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "type": "output",
+          "data": { "label": "Business Intelligence & Reporting" },
+          "position": { "x": 250, "y": 600 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" }
+      ]
+    },
+    {
+      "id": "android",
+      "title": "Android Developer",
+      "description": "A comprehensive roadmap to becoming an Android developer",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Programming (Java/Kotlin)" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Android Studio & SDK" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "UI Design & Layouts" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Android Components & Lifecycle" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "Data Storage & APIs" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Jetpack Components" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "Testing & Debugging" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "Publishing & App Performance" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "ios",
+      "title": "iOS Developer",
+      "description": "A comprehensive roadmap to becoming an iOS developer",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Programming (Swift)" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Xcode & Interface Builder" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "UIKit & SwiftUI" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "iOS App Lifecycle" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "Data Persistence & Networking" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Core iOS Frameworks" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "Testing & Debugging" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "App Store & Distribution" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "cybersecurity",
+      "title": "Cybersecurity Specialist",
+      "description": "A comprehensive roadmap to becoming a cybersecurity specialist",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Networking Fundamentals" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Operating Systems & Linux" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "Security Fundamentals" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Cryptography" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "Ethical Hacking & Penetration Testing" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Security Operations & Incident Response" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "data": { "label": "Compliance & Risk Management" },
+          "position": { "x": 250, "y": 600 }
+        },
+        {
+          "id": "8",
+          "type": "output",
+          "data": { "label": "Advanced Security & Specialization" },
+          "position": { "x": 250, "y": 700 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" },
+        { "id": "e7-8", "source": "7", "target": "8" }
+      ]
+    },
+    {
+      "id": "blockchain",
+      "title": "Blockchain Developer",
+      "description": "A comprehensive roadmap to becoming a blockchain developer",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "input",
+          "data": { "label": "Blockchain Fundamentals" },
+          "position": { "x": 250, "y": 0 }
+        },
+        {
+          "id": "2",
+          "data": { "label": "Cryptography & Security" },
+          "position": { "x": 250, "y": 100 }
+        },
+        {
+          "id": "3",
+          "data": { "label": "Smart Contract Development (Solidity)" },
+          "position": { "x": 250, "y": 200 }
+        },
+        {
+          "id": "4",
+          "data": { "label": "Web3 Development" },
+          "position": { "x": 250, "y": 300 }
+        },
+        {
+          "id": "5",
+          "data": { "label": "DApp Architecture" },
+          "position": { "x": 250, "y": 400 }
+        },
+        {
+          "id": "6",
+          "data": { "label": "Testing & Security Auditing" },
+          "position": { "x": 250, "y": 500 }
+        },
+        {
+          "id": "7",
+          "type": "output",
+          "data": { "label": "Advanced Blockchain Concepts" },
+          "position": { "x": 250, "y": 600 }
+        }
+      ],
+      "edges": [
+        { "id": "e1-2", "source": "1", "target": "2" },
+        { "id": "e2-3", "source": "2", "target": "3" },
+        { "id": "e3-4", "source": "3", "target": "4" },
+        { "id": "e4-5", "source": "4", "target": "5" },
+        { "id": "e5-6", "source": "5", "target": "6" },
+        { "id": "e6-7", "source": "6", "target": "7" }
+      ]
+    }
+  ]
+}

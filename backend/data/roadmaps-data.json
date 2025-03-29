@@ -1,0 +1,728 @@
+[
+  {
+    "id": "product-manager",
+    "slug": "product-manager",
+    "title": "Product Manager",
+    "description": "Complete roadmap to becoming a successful Product Manager with emphasis on strategy, research, and execution",
+    "category": "other",
+    "difficulty": "intermediate",
+    "estimatedHours": 250,
+    "prerequisites": ["Communication skills", "Problem-solving ability"],
+    "author": {
+      "name": "TLE-BlueBit Team",
+      "role": "Product Expert"
+    },
+    "nodes": [
+      {
+        "id": "pm-basics",
+        "type": "input",
+        "data": {
+          "label": "Product Management Basics",
+          "description": "Core concepts of product management",
+          "color": "#6366f1",
+          "parent": "",
+          "level": 0
+        },
+        "position": { "x": 500, "y": 50 }
+      },
+      {
+        "id": "market-research",
+        "type": "default",
+        "data": {
+          "label": "Market Research",
+          "description": "Understanding user needs and market opportunities",
+          "color": "#3b82f6",
+          "parent": "pm-basics",
+          "level": 1
+        },
+        "position": { "x": 300, "y": 150 }
+      },
+      {
+        "id": "user-personas",
+        "type": "default",
+        "data": {
+          "label": "User Personas",
+          "description": "Creating detailed user profiles",
+          "color": "#8b5cf6",
+          "parent": "market-research",
+          "level": 2
+        },
+        "position": { "x": 200, "y": 250 }
+      },
+      {
+        "id": "competitor-analysis",
+        "type": "default",
+        "data": {
+          "label": "Competitor Analysis",
+          "description": "Evaluating competitor products and strategies",
+          "color": "#8b5cf6",
+          "parent": "market-research",
+          "level": 2
+        },
+        "position": { "x": 400, "y": 250 }
+      },
+      {
+        "id": "product-strategy",
+        "type": "default",
+        "data": {
+          "label": "Product Strategy",
+          "description": "Defining vision, goals, and roadmap",
+          "color": "#3b82f6",
+          "parent": "pm-basics",
+          "level": 1
+        },
+        "position": { "x": 700, "y": 150 }
+      },
+      {
+        "id": "problem-definition",
+        "type": "default",
+        "data": {
+          "label": "Problem Definition",
+          "description": "Clearly articulating the problem to solve",
+          "color": "#8b5cf6",
+          "parent": "product-strategy",
+          "level": 2
+        },
+        "position": { "x": 600, "y": 250 }
+      },
+      {
+        "id": "solution-ideation",
+        "type": "default",
+        "data": {
+          "label": "Solution Ideation",
+          "description": "Brainstorming and evaluating solutions",
+          "color": "#8b5cf6",
+          "parent": "product-strategy",
+          "level": 2
+        },
+        "position": { "x": 800, "y": 250 }
+      },
+      {
+        "id": "product-roadmap",
+        "type": "default",
+        "data": {
+          "label": "Product Roadmap",
+          "description": "Strategic plan for product development",
+          "color": "#ec4899",
+          "parent": "product-strategy",
+          "level": 3
+        },
+        "position": { "x": 800, "y": 350 }
+      },
+      {
+        "id": "execution",
+        "type": "default",
+        "data": {
+          "label": "Product Execution",
+          "description": "Taking products from concept to launch",
+          "color": "#3b82f6",
+          "parent": "pm-basics",
+          "level": 1
+        },
+        "position": { "x": 500, "y": 450 }
+      },
+      {
+        "id": "requirements",
+        "type": "default",
+        "data": {
+          "label": "Product Requirements",
+          "description": "Writing clear PRDs and user stories",
+          "color": "#8b5cf6",
+          "parent": "execution",
+          "level": 2
+        },
+        "position": { "x": 300, "y": 550 }
+      },
+      {
+        "id": "mvp-definition",
+        "type": "default",
+        "data": {
+          "label": "MVP Definition",
+          "description": "Defining minimum viable product",
+          "color": "#ec4899",
+          "parent": "requirements",
+          "level": 3
+        },
+        "position": { "x": 300, "y": 650 }
+      },
+      {
+        "id": "project-management",
+        "type": "default",
+        "data": {
+          "label": "Project Management",
+          "description": "Managing timelines, resources, and scope",
+          "color": "#8b5cf6",
+          "parent": "execution",
+          "level": 2
+        },
+        "position": { "x": 500, "y": 550 }
+      },
+      {
+        "id": "agile",
+        "type": "default",
+        "data": {
+          "label": "Agile Methodologies",
+          "description": "Scrum, Kanban, and other frameworks",
+          "color": "#ec4899",
+          "parent": "project-management",
+          "level": 3
+        },
+        "position": { "x": 500, "y": 650 }
+      },
+      {
+        "id": "collaboration",
+        "type": "default",
+        "data": {
+          "label": "Cross-functional Collaboration",
+          "description": "Working with design, engineering, and marketing",
+          "color": "#8b5cf6",
+          "parent": "execution",
+          "level": 2
+        },
+        "position": { "x": 700, "y": 550 }
+      },
+      {
+        "id": "communication",
+        "type": "default",
+        "data": {
+          "label": "Stakeholder Communication",
+          "description": "Engaging with leadership and stakeholders",
+          "color": "#ec4899",
+          "parent": "collaboration",
+          "level": 3
+        },
+        "position": { "x": 700, "y": 650 }
+      },
+      {
+        "id": "analytics",
+        "type": "default",
+        "data": {
+          "label": "Product Analytics",
+          "description": "Measuring product performance",
+          "color": "#3b82f6",
+          "parent": "pm-basics",
+          "level": 1
+        },
+        "position": { "x": 500, "y": 750 }
+      },
+      {
+        "id": "kpis",
+        "type": "default",
+        "data": {
+          "label": "Product KPIs",
+          "description": "Defining and tracking success metrics",
+          "color": "#8b5cf6",
+          "parent": "analytics",
+          "level": 2
+        },
+        "position": { "x": 400, "y": 850 }
+      },
+      {
+        "id": "user-feedback",
+        "type": "default",
+        "data": {
+          "label": "User Feedback Analysis",
+          "description": "Gathering and analyzing user feedback",
+          "color": "#8b5cf6",
+          "parent": "analytics",
+          "level": 2
+        },
+        "position": { "x": 600, "y": 850 }
+      },
+      {
+        "id": "career-growth",
+        "type": "output",
+        "data": {
+          "label": "Product Leadership",
+          "description": "Growing into senior PM roles",
+          "color": "#10b981",
+          "parent": "",
+          "level": 0
+        },
+        "position": { "x": 500, "y": 950 }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-basics-research",
+        "source": "pm-basics",
+        "target": "market-research",
+        "animated": true
+      },
+      {
+        "id": "e-research-personas",
+        "source": "market-research",
+        "target": "user-personas",
+        "animated": true
+      },
+      {
+        "id": "e-research-competitor",
+        "source": "market-research",
+        "target": "competitor-analysis",
+        "animated": true
+      },
+      {
+        "id": "e-basics-strategy",
+        "source": "pm-basics",
+        "target": "product-strategy",
+        "animated": true
+      },
+      {
+        "id": "e-strategy-problem",
+        "source": "product-strategy",
+        "target": "problem-definition",
+        "animated": true
+      },
+      {
+        "id": "e-strategy-solution",
+        "source": "product-strategy",
+        "target": "solution-ideation",
+        "animated": true
+      },
+      {
+        "id": "e-solution-roadmap",
+        "source": "solution-ideation",
+        "target": "product-roadmap",
+        "animated": true
+      },
+      {
+        "id": "e-basics-execution",
+        "source": "pm-basics",
+        "target": "execution",
+        "animated": true
+      },
+      {
+        "id": "e-execution-requirements",
+        "source": "execution",
+        "target": "requirements",
+        "animated": true
+      },
+      {
+        "id": "e-requirements-mvp",
+        "source": "requirements",
+        "target": "mvp-definition",
+        "animated": true
+      },
+      {
+        "id": "e-execution-project",
+        "source": "execution",
+        "target": "project-management",
+        "animated": true
+      },
+      {
+        "id": "e-project-agile",
+        "source": "project-management",
+        "target": "agile",
+        "animated": true
+      },
+      {
+        "id": "e-execution-collaboration",
+        "source": "execution",
+        "target": "collaboration",
+        "animated": true
+      },
+      {
+        "id": "e-collaboration-communication",
+        "source": "collaboration",
+        "target": "communication",
+        "animated": true
+      },
+      {
+        "id": "e-basics-analytics",
+        "source": "pm-basics",
+        "target": "analytics",
+        "animated": true
+      },
+      {
+        "id": "e-analytics-kpis",
+        "source": "analytics",
+        "target": "kpis",
+        "animated": true
+      },
+      {
+        "id": "e-analytics-feedback",
+        "source": "analytics",
+        "target": "user-feedback",
+        "animated": true
+      },
+      {
+        "id": "e-analytics-leadership",
+        "source": "analytics",
+        "target": "career-growth",
+        "animated": true
+      },
+      {
+        "id": "e-execution-leadership",
+        "source": "execution",
+        "target": "career-growth",
+        "animated": true
+      }
+    ]
+  },
+  {
+    "id": "ux-designer",
+    "slug": "ux-designer",
+    "title": "UX Designer",
+    "description": "Complete roadmap to becoming a skilled UX Designer with focus on user research, interaction design, and usability testing",
+    "category": "other",
+    "difficulty": "intermediate",
+    "estimatedHours": 280,
+    "prerequisites": ["Visual design basics", "Empathy"],
+    "author": {
+      "name": "TLE-BlueBit Team",
+      "role": "UX Expert"
+    },
+    "nodes": [
+      {
+        "id": "ux-fundamentals",
+        "type": "input",
+        "data": {
+          "label": "UX Fundamentals",
+          "description": "Core principles of user experience design",
+          "color": "#6366f1",
+          "parent": "",
+          "level": 0
+        },
+        "position": { "x": 500, "y": 50 }
+      },
+      {
+        "id": "user-research",
+        "type": "default",
+        "data": {
+          "label": "User Research",
+          "description": "Understanding users through research methods",
+          "color": "#3b82f6",
+          "parent": "ux-fundamentals",
+          "level": 1
+        },
+        "position": { "x": 300, "y": 150 }
+      },
+      {
+        "id": "interviews",
+        "type": "default",
+        "data": {
+          "label": "User Interviews",
+          "description": "Conducting effective user interviews",
+          "color": "#8b5cf6",
+          "parent": "user-research",
+          "level": 2
+        },
+        "position": { "x": 200, "y": 250 }
+      },
+      {
+        "id": "usability-testing",
+        "type": "default",
+        "data": {
+          "label": "Usability Testing",
+          "description": "Testing designs with real users",
+          "color": "#8b5cf6",
+          "parent": "user-research",
+          "level": 2
+        },
+        "position": { "x": 400, "y": 250 }
+      },
+      {
+        "id": "information-architecture",
+        "type": "default",
+        "data": {
+          "label": "Information Architecture",
+          "description": "Organizing content and navigation",
+          "color": "#3b82f6",
+          "parent": "ux-fundamentals",
+          "level": 1
+        },
+        "position": { "x": 700, "y": 150 }
+      },
+      {
+        "id": "card-sorting",
+        "type": "default",
+        "data": {
+          "label": "Card Sorting",
+          "description": "Organizing site content with users",
+          "color": "#8b5cf6",
+          "parent": "information-architecture",
+          "level": 2
+        },
+        "position": { "x": 600, "y": 250 }
+      },
+      {
+        "id": "site-mapping",
+        "type": "default",
+        "data": {
+          "label": "Site Mapping",
+          "description": "Creating visual site structure",
+          "color": "#8b5cf6",
+          "parent": "information-architecture",
+          "level": 2
+        },
+        "position": { "x": 800, "y": 250 }
+      },
+      {
+        "id": "interaction-design",
+        "type": "default",
+        "data": {
+          "label": "Interaction Design",
+          "description": "Creating engaging user interactions",
+          "color": "#3b82f6",
+          "parent": "ux-fundamentals",
+          "level": 1
+        },
+        "position": { "x": 500, "y": 350 }
+      },
+      {
+        "id": "wireframing",
+        "type": "default",
+        "data": {
+          "label": "Wireframing",
+          "description": "Creating low-fidelity layouts",
+          "color": "#8b5cf6",
+          "parent": "interaction-design",
+          "level": 2
+        },
+        "position": { "x": 300, "y": 450 }
+      },
+      {
+        "id": "prototyping",
+        "type": "default",
+        "data": {
+          "label": "Prototyping",
+          "description": "Building interactive mockups",
+          "color": "#8b5cf6",
+          "parent": "interaction-design",
+          "level": 2
+        },
+        "position": { "x": 500, "y": 450 }
+      },
+      {
+        "id": "design-tools",
+        "type": "default",
+        "data": {
+          "label": "Design Tools",
+          "description": "Figma, Sketch, Adobe XD",
+          "color": "#ec4899",
+          "parent": "prototyping",
+          "level": 3
+        },
+        "position": { "x": 500, "y": 550 }
+      },
+      {
+        "id": "micro-interactions",
+        "type": "default",
+        "data": {
+          "label": "Micro-interactions",
+          "description": "Designing small, engaging interactions",
+          "color": "#8b5cf6",
+          "parent": "interaction-design",
+          "level": 2
+        },
+        "position": { "x": 700, "y": 450 }
+      },
+      {
+        "id": "visual-design",
+        "type": "default",
+        "data": {
+          "label": "Visual Design",
+          "description": "Aesthetics and visual communication",
+          "color": "#3b82f6",
+          "parent": "ux-fundamentals",
+          "level": 1
+        },
+        "position": { "x": 900, "y": 350 }
+      },
+      {
+        "id": "color-theory",
+        "type": "default",
+        "data": {
+          "label": "Color Theory",
+          "description": "Using color effectively in design",
+          "color": "#8b5cf6",
+          "parent": "visual-design",
+          "level": 2
+        },
+        "position": { "x": 800, "y": 450 }
+      },
+      {
+        "id": "typography",
+        "type": "default",
+        "data": {
+          "label": "Typography",
+          "description": "Font selection and text styling",
+          "color": "#8b5cf6",
+          "parent": "visual-design",
+          "level": 2
+        },
+        "position": { "x": 1000, "y": 450 }
+      },
+      {
+        "id": "accessibility",
+        "type": "default",
+        "data": {
+          "label": "Accessibility",
+          "description": "Designing for all users",
+          "color": "#3b82f6",
+          "parent": "ux-fundamentals",
+          "level": 1
+        },
+        "position": { "x": 500, "y": 650 }
+      },
+      {
+        "id": "wcag",
+        "type": "default",
+        "data": {
+          "label": "WCAG Guidelines",
+          "description": "Web Content Accessibility Guidelines",
+          "color": "#8b5cf6",
+          "parent": "accessibility",
+          "level": 2
+        },
+        "position": { "x": 400, "y": 750 }
+      },
+      {
+        "id": "inclusive-design",
+        "type": "default",
+        "data": {
+          "label": "Inclusive Design",
+          "description": "Designing for diversity and inclusion",
+          "color": "#8b5cf6",
+          "parent": "accessibility",
+          "level": 2
+        },
+        "position": { "x": 600, "y": 750 }
+      },
+      {
+        "id": "ux-portfolio",
+        "type": "output",
+        "data": {
+          "label": "UX Portfolio & Career",
+          "description": "Building a portfolio and growing your career",
+          "color": "#10b981",
+          "parent": "",
+          "level": 0
+        },
+        "position": { "x": 500, "y": 850 }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-fund-research",
+        "source": "ux-fundamentals",
+        "target": "user-research",
+        "animated": true
+      },
+      {
+        "id": "e-research-interviews",
+        "source": "user-research",
+        "target": "interviews",
+        "animated": true
+      },
+      {
+        "id": "e-research-usability",
+        "source": "user-research",
+        "target": "usability-testing",
+        "animated": true
+      },
+      {
+        "id": "e-fund-ia",
+        "source": "ux-fundamentals",
+        "target": "information-architecture",
+        "animated": true
+      },
+      {
+        "id": "e-ia-card",
+        "source": "information-architecture",
+        "target": "card-sorting",
+        "animated": true
+      },
+      {
+        "id": "e-ia-sitemap",
+        "source": "information-architecture",
+        "target": "site-mapping",
+        "animated": true
+      },
+      {
+        "id": "e-fund-interaction",
+        "source": "ux-fundamentals",
+        "target": "interaction-design",
+        "animated": true
+      },
+      {
+        "id": "e-interaction-wireframe",
+        "source": "interaction-design",
+        "target": "wireframing",
+        "animated": true
+      },
+      {
+        "id": "e-interaction-prototype",
+        "source": "interaction-design",
+        "target": "prototyping",
+        "animated": true
+      },
+      {
+        "id": "e-prototype-tools",
+        "source": "prototyping",
+        "target": "design-tools",
+        "animated": true
+      },
+      {
+        "id": "e-interaction-micro",
+        "source": "interaction-design",
+        "target": "micro-interactions",
+        "animated": true
+      },
+      {
+        "id": "e-fund-visual",
+        "source": "ux-fundamentals",
+        "target": "visual-design",
+        "animated": true
+      },
+      {
+        "id": "e-visual-color",
+        "source": "visual-design",
+        "target": "color-theory",
+        "animated": true
+      },
+      {
+        "id": "e-visual-typography",
+        "source": "visual-design",
+        "target": "typography",
+        "animated": true
+      },
+      {
+        "id": "e-fund-accessibility",
+        "source": "ux-fundamentals",
+        "target": "accessibility",
+        "animated": true
+      },
+      {
+        "id": "e-accessibility-wcag",
+        "source": "accessibility",
+        "target": "wcag",
+        "animated": true
+      },
+      {
+        "id": "e-accessibility-inclusive",
+        "source": "accessibility",
+        "target": "inclusive-design",
+        "animated": true
+      },
+      {
+        "id": "e-accessibility-portfolio",
+        "source": "accessibility",
+        "target": "ux-portfolio",
+        "animated": true
+      },
+      {
+        "id": "e-visual-portfolio",
+        "source": "visual-design",
+        "target": "ux-portfolio",
+        "animated": true
+      },
+      {
+        "id": "e-interaction-portfolio",
+        "source": "interaction-design",
+        "target": "ux-portfolio",
+        "animated": true
+      }
+    ]
+  }
+] 

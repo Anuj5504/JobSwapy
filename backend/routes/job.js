@@ -39,37 +39,167 @@ router.get('/getRecommendation/:id', async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Query with pagination
-      const recommendations = await Job.find({
+      // Build base query for recommendations
+      const baseQuery = {
         $or: [
           { skills: { $in: user.skills } },
           { $or: user.skills.map(skill => ({ title: { $regex: skill, $options: "i" } })) }
         ]
-      })
-      .skip(skip)
-      .limit(limit);
+      };
+
+      // Build additional filters similar to getJobs
+      const additionalFilters = {};
+
+      // Handle search query (title, company, description)
+      if (req.query.search) {
+        const searchRegex = new RegExp(req.query.search, 'i');
+        additionalFilters.$or = [
+          { title: searchRegex },
+          { company: searchRegex },
+          { description: searchRegex }
+        ];
+      }
+
+      // Handle location filter
+      if (req.query.location) {
+        additionalFilters['jobDetails.location'] = new RegExp(req.query.location, 'i');
+      }
+
+      // Handle work type filter (remote, hybrid, office)
+      if (req.query.workType) {
+        const workTypes = req.query.workType.split(',').filter(Boolean);
+        if (workTypes.length > 0) {
+          // Create or conditions for each work type
+          const workTypeConditions = [];
+          
+          if (workTypes.includes('remote')) {
+            // Remote includes "work from home" or "remote" in employment type or description
+            workTypeConditions.push({ 
+              $or: [
+                { 'jobDetails.employmentType': new RegExp('remote|work\\s*from\\s*home|wfh', 'i') },
+                { 'description': new RegExp('remote|work\\s*from\\s*home|wfh', 'i') }
+              ]
+            });
+          }
+          
+          if (workTypes.includes('hybrid')) {
+            // Hybrid includes "hybrid" in employment type or description
+            workTypeConditions.push({ 
+              $or: [
+                { 'jobDetails.employmentType': new RegExp('hybrid', 'i') },
+                { 'description': new RegExp('hybrid', 'i') }
+              ]
+            });
+          }
+          
+          if (workTypes.includes('office')) {
+            // Office is anything that doesn't match remote or hybrid patterns
+            workTypeConditions.push({ 
+              $and: [
+                { 'jobDetails.employmentType': { $not: new RegExp('remote|work\\s*from\\s*home|wfh|hybrid', 'i') } },
+                { 'description': { $not: new RegExp('remote|work\\s*from\\s*home|wfh|hybrid', 'i') } }
+              ]
+            });
+          }
+          
+          if (workTypeConditions.length > 0) {
+            additionalFilters.$or = additionalFilters.$or || [];
+            // Combine with existing OR conditions
+            additionalFilters.$or.push(...workTypeConditions);
+          }
+        }
+      }
+
+      // Handle source filter (linkedin, indeed, glassdoor, naukri, internshala)
+      if (req.query.source) {
+        const sources = req.query.source.split(',').filter(Boolean);
+        if (sources.length > 0) {
+          additionalFilters.source = { $in: sources.map(source => new RegExp(source, 'i')) };
+        }
+      }
+
+      // Handle skills filter
+      if (req.query.skills) {
+        additionalFilters.skills = { $in: req.query.skills.split(',').map(skill => new RegExp(skill.trim(), 'i')) };
+      }
+
+      // Combine base recommendation query with additional filters
+      const finalQuery = Object.keys(additionalFilters).length > 0
+        ? { $and: [baseQuery, additionalFilters] }
+        : baseQuery;
+      
+      // Query with pagination and filters
+      const recommendations = await Job.find(finalQuery)
+        .sort({ 'jobDetails.postedDate': -1 }) // Sort by newest first
+        .skip(skip)
+        .limit(limit);
       
       // Get total count for pagination
-      const totalRecommendations = await Job.countDocuments({
-        $or: [
-          { skills: { $in: user.skills } },
-          { $or: user.skills.map(skill => ({ title: { $regex: skill, $options: "i" } })) }
-        ]
-      });
+      const totalRecommendations = await Job.countDocuments(finalQuery);
       
-      const totalPages = Math.ceil(totalRecommendations / limit);
+      // Handle skill match percentage if provided
+      let jobsWithMatchPercentage = recommendations;
+      let filteredCount = totalRecommendations;
+      
+      // Always calculate the skill match percentage for recommendations
+      if (user.skills && user.skills.length > 0) {
+        // Calculate match percentage for each job
+        jobsWithMatchPercentage = recommendations.map(job => {
+          const jobSkills = job.skills || [];
+          
+          // Find exact matches between user skills and job skills
+          const matchedSkills = user.skills.filter(skill => 
+            jobSkills.some(jobSkill => jobSkill.toLowerCase() === skill.toLowerCase())
+          );
+          
+          // Calculate percentage based on job's required skills
+          const matchPercentage = jobSkills.length > 0 
+            ? Math.round((matchedSkills.length / jobSkills.length) * 100) 
+            : 0;
+          
+          // Add match percentage to job object
+          return {
+            ...job.toObject(),
+            skillMatchPercentage: matchPercentage
+          };
+        });
+        
+        // If a minimum match percentage is specified, filter the results
+        if (req.query.skillMatchPercentage && parseInt(req.query.skillMatchPercentage) > 0) {
+          const minPercentage = parseInt(req.query.skillMatchPercentage);
+          const filteredJobs = jobsWithMatchPercentage.filter(job => job.skillMatchPercentage >= minPercentage);
+          
+          // Update jobs and count
+          jobsWithMatchPercentage = filteredJobs;
+          filteredCount = filteredJobs.length;
+        } else if (req.query.skillMatchMin && req.query.skillMatchMax) {
+          // Filter by range
+          const minMatch = parseInt(req.query.skillMatchMin);
+          const maxMatch = parseInt(req.query.skillMatchMax);
+          const filteredJobs = jobsWithMatchPercentage.filter(job => 
+            job.skillMatchPercentage >= minMatch && job.skillMatchPercentage <= maxMatch
+          );
+          
+          // Update jobs and count
+          jobsWithMatchPercentage = filteredJobs;
+          filteredCount = filteredJobs.length;
+        }
+      }
+      
+      const totalPages = Math.ceil(filteredCount / limit);
 
       res.status(200).json({
         success: true,
-        count: recommendations.length,
+        count: jobsWithMatchPercentage.length,
         pagination: {
-          total: totalRecommendations,
+          total: filteredCount,
           pages: totalPages,
           currentPage: page,
           hasNextPage: page < totalPages,
-          hasPrevPage: page > 1
+          hasPrevPage: page > 1,
+          totalDocs: filteredCount
         },
-        data: recommendations
+        data: jobsWithMatchPercentage
       });
   
     } catch (error) {

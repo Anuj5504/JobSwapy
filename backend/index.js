@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const authRoutes = require('./routes/auth');
 const jobRoutes = require('./routes/job');
 const userRoutes = require('./routes/user');
+const roadmapRoutes = require('./routes/roadmap');
 const communityRoutes = require('./routes/communityRoutes');
 const app = express();
 
@@ -70,6 +71,7 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/community', communityRoutes);
 
 const PORT = process.env.PORT || 5000;
