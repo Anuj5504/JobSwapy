@@ -127,6 +127,10 @@ function JobDetails() {
     }
   };
 
+  const handleStartMockInterview = () => {
+    navigate(`/mock-interview/${id}`);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[70vh] bg-gray-50 dark:bg-gray-900">
@@ -594,6 +598,12 @@ function JobDetails() {
                       </svg>
                       {isJobSaved ? 'Saved' : 'Save Job'}
                     </motion.button>
+
+                <button 
+            onClick={handleStartMockInterview}
+            className="bg-blue-600 text-white w-full px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                Start Mock Interview
+              </button>
                     
                     {/* {job?.applyLink && (
                       <a 
@@ -610,6 +620,12 @@ function JobDetails() {
               </motion.div>
             </div>
           </div>
+          {/* <button 
+            onClick={handleStartMockInterview}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Start Mock Interview
+          </button> */}
         </motion.div>
       </div>
     </div>

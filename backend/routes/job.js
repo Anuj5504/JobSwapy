@@ -18,7 +18,7 @@ const {
 
 // Basic job routes
 router.get('/', getJobs);
-router.get('/:id', authenticateToken, getJobById);
+router.get('/:id',getJobById);
 router.get('/similar/:id', getSimilarJobs);
 
 // Job interaction routes

@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
-import JobDetails from './pages/JobDetails'
+import JobDetails from './Pages/JobDetails'
 import SavedJobs from './pages/SavedJobs'
 import AppliedJobs from './pages/AppliedJobs'
 import Profile from './pages/Profile'
@@ -23,6 +23,7 @@ import { CommunityProvider } from './context/CommunityContext'
 import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
 import ReccomendedJobListings from './Pages/ReccomendedJobListings'
+import MockInterview from './Pages/MockInterview'
 
 function App() {
   return (
@@ -76,9 +77,10 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/roadmaps" element={<RoadmapList />} />
-              <Route path="/roadmap/:id" element={<RoadmapDetail />} />
-              <Route path="/create-roadmap" element={<CreateRoadmap />} />
-              <Route path="/migration-guide" element={<MigrationGuide />} />
+                <Route path="/roadmap/:id" element={<RoadmapDetail />} />
+                <Route path="/create-roadmap" element={<CreateRoadmap />} />
+                <Route path="/migration-guide" element={<MigrationGuide />} />
+                <Route path="/mock-interview/:jobId" element={<MockInterview />} />
               </Routes>
             </main>
             <ToastContainer 
