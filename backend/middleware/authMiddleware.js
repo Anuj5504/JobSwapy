@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 exports.authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
+  // console.log(token);
   
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
@@ -15,6 +16,7 @@ exports.authenticateToken = (req, res, next) => {
     }
     
     req.userId = decoded.userId;
+    // console.log(req.userId);
     next();
   });
 };

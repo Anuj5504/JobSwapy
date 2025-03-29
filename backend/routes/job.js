@@ -1,17 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const jobController = require('../controllers/jobController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Job = require('../models/Job');
 const mongoose = require('mongoose');
 const { triggerJobNotifications } = require('../utils/jobNotificationService');
 
-// Public routes
-router.get('/',jobController.getJobs);
-router.get('/similar/:id', jobController.getSimilarJobs);
-router.get('/:id',jobController.getJobById);
+// Import all controller functions
+const {
+  getJobs,
+  getJobById,
+  getSimilarJobs,
+  recordJobApplication,
+  getJobStats,
+  checkUserJobInteraction
+} = require('../controllers/jobController');
 
+// Basic job routes
+router.get('/', getJobs);
+router.get('/:id', authenticateToken, getJobById);
+router.get('/similar/:id', getSimilarJobs);
+
+// Job interaction routes
+router.post('/:jobId/apply', authenticateToken, recordJobApplication);
+router.get('/:jobId/stats', getJobStats);
+router.get('/:jobId/user-interaction', authenticateToken, checkUserJobInteraction);
+
+// Get personalized recommendations
 router.get('/getRecommendation/:id', async (req, res) => {
     try {
       // Parse pagination parameters
@@ -194,39 +209,50 @@ router.get('/getRecommendation/:id', async (req, res) => {
         message: "Server error while fetching recommendations" 
       });
     }
-  })
+});
 
-
+// Main save/unsave job routes - integrates with Job model's savedBy array and savedCount fields
 router.post('/savejob/:jobid/:userid', async (req, res) => {
     try {
-        const jobId=req.params.jobid;
-        const userId=req.params.userid;
-
+        const jobId = req.params.jobid;
+        const userId = req.params.userid;
            
-      if (!userId) {
-        return res.status(404).json({ message: "User not found" });
-      }
-  
-      const job=await Job.findById(jobId);
-  
-      if(!job){
-        return res.status(404).json({message:"Invalid id"});
-      }
-  
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { $addToSet: { savedJobs: jobId } },
-        { new: true }
-      );
-      
-      res.status(200).json({
-        updatedUser
-      });
-  
+        if (!userId) {
+          return res.status(404).json({ message: "User not found" });
+        }
+    
+        const job = await Job.findById(jobId);
+    
+        if(!job){
+          return res.status(404).json({message:"Invalid id"});
+        }
+    
+        const updatedUser = await User.findByIdAndUpdate(
+          userId,
+          { $addToSet: { savedJobs: jobId } },
+          { new: true }
+        );
+
+        // Update Job model: add userId to savedBy array and increment savedCount by 1
+        await Job.findByIdAndUpdate(jobId, {
+          $addToSet: { savedBy: userId },
+          $inc: { savedCount: 1 }
+        });
+        
+        res.status(200).json({
+          success: true,
+          message: "Job saved successfully",
+          updatedUser
+        });
+    
     } catch (error) {
-      res.status(500).json({ message: "Failed fetching data" });
+      console.error('Error saving job:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed saving job" 
+      });
     }
-  })
+});
 
 // Route to unsave a job (remove from saved jobs)
 router.delete('/unsavejob/:jobid/:userid', async (req, res) => {
@@ -254,6 +280,12 @@ router.delete('/unsavejob/:jobid/:userid', async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // Update Job model: remove userId from savedBy array and decrement savedCount by 1
+    await Job.findByIdAndUpdate(jobId, {
+      $pull: { savedBy: userId },
+      $inc: { savedCount: -1 }
+    });
     
     res.status(200).json({
       success: true,
@@ -328,6 +360,7 @@ router.get('/swipe/:id', async (req, res) => {
     });
   }
 });
+
 // Trigger job notifications for all users with matching skills/interests
 router.post('/send-notifications', authenticateToken, async (req, res) => {
   try {
@@ -363,8 +396,5 @@ router.post('/send-notifications', authenticateToken, async (req, res) => {
     });
   }
 });
-
-// Protected routes (if any)
-// router.post('/', authenticateToken, jobController.createJob);
 
 module.exports = router; 

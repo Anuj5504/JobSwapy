@@ -196,6 +196,30 @@ function JobListings() {
     setExpandedJobId(expandedJobId === jobId ? null : jobId);
   };
 
+  // Add handler for Apply button clicks
+  const handleApplyClick = async (jobId, applyLink, e) => {
+    e.preventDefault(); // Prevent the link/card click from triggering
+    e.stopPropagation(); // Prevent event bubbling to parent elements
+    
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token'); // Don't parse token as JSON
+
+      if (user && user.id && token) {
+        // Record the application
+        await api.post(`/api/jobs/${jobId}/apply`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      // Open the apply link in a new tab
+      window.open(applyLink, '_blank');
+    } catch (error) {
+      console.error('Error recording job application:', error);
+      window.open(applyLink, '_blank');
+    }
+  };
+
   // Render pagination controls
   const renderPagination = () => {
     if (!paginationInfo || paginationInfo.pages <= 1) return null;
@@ -672,10 +696,8 @@ function JobListings() {
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{job.company}</span>
                 </div>
                 <a
-                  href={job.applyLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  href="#"
+                  onClick={(e) => handleApplyClick(job.id, job.applyLink, e)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   Apply
