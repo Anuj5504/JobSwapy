@@ -23,6 +23,8 @@ import { CommunityProvider } from './context/CommunityContext'
 import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
 import ReccomendedJobListings from './Pages/ReccomendedJobListings'
+import ResumeBuilderLanding from './Pages/ResumeBuilderLanding'
+import ResumeEditor from './Pages/ResumeEditor'
 
 function App() {
   return (
@@ -70,15 +72,21 @@ function App() {
                 <Route path="/resume-upload" element={
                     <ResumeUpload />
                 } />
+                <Route path="/resume-builder" element={
+                    <ResumeBuilderLanding />
+                } />
+                <Route path="/resume-builder/:templateId" element={
+                    <ResumeEditor />
+                } />
                 <Route path="/community/*" element={
                   <ProtectedRoute>
                     <Community />
                   </ProtectedRoute>
                 } />
                 <Route path="/roadmaps" element={<RoadmapList />} />
-              <Route path="/roadmap/:id" element={<RoadmapDetail />} />
-              <Route path="/create-roadmap" element={<CreateRoadmap />} />
-              <Route path="/migration-guide" element={<MigrationGuide />} />
+                <Route path="/roadmap/:id" element={<RoadmapDetail />} />
+                <Route path="/create-roadmap" element={<CreateRoadmap />} />
+                <Route path="/migration-guide" element={<MigrationGuide />} />
               </Routes>
             </main>
             <ToastContainer 

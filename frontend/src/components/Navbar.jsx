@@ -220,6 +220,21 @@ function Navbar() {
                   <span>Roadmaps</span>
                 </div>
               </Link>
+              <Link 
+                to="/resume-builder" 
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname.includes('/resume-builder') 
+                    ? 'bg-teal-600 text-white' 
+                    : 'bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 hover:bg-teal-200 dark:hover:bg-teal-800'
+                  }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Resume Builder</span>
+                </div>
+              </Link>
               {/* Community - Only show if user is logged in */}
               {user && (
                 <Link
@@ -297,6 +312,7 @@ function Navbar() {
                         >
                           Your Profile
                         </Link>
+                        
                         <Link
                           to="/saved"
                           className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -473,7 +489,6 @@ function Navbar() {
                 </Link>
               )}
 
-
               <div className="px-3 py-2">
                 <DarkModeToggle />
               </div>
@@ -506,6 +521,17 @@ function Navbar() {
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       Your Profile
+                    </Link>
+                    <Link
+                      to="/resume-builder"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Resume Builder
+                      </div>
                     </Link>
                     <Link
                       to="/settings"
