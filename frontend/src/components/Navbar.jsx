@@ -205,11 +205,11 @@ function Navbar() {
                   </div>
                 </div>
               </div>
-              <Link 
-                to="/roadmaps" 
+              <Link
+                to="/roadmaps"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  ${location.pathname.includes('/roadmap') 
-                    ? 'bg-purple-600 text-white' 
+                  ${location.pathname.includes('/roadmap')
+                    ? 'bg-purple-600 text-white'
                     : 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800'
                   }`}
               >
@@ -571,4 +571,4 @@ function Navbar() {
   );
 }
 
-export default Navbar; 
+export default Navbar;

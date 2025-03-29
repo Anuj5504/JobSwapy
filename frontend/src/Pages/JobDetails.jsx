@@ -15,6 +15,9 @@ function JobDetails() {
   const [isApplying, setIsApplying] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [savedJobIds, setSavedJobIds] = useState([]);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderDate, setReminderDate] = useState('');
+  const [isSettingReminder, setIsSettingReminder] = useState(false);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -35,7 +38,7 @@ function JobDetails() {
     };
 
     fetchJobDetails();
-    
+
     // Fetch saved jobs for current user
     const fetchSavedJobs = async () => {
       try {
@@ -50,7 +53,7 @@ function JobDetails() {
         console.error('Error fetching saved jobs:', error);
       }
     };
-    
+
     fetchSavedJobs();
   }, [id, job]);
 
@@ -66,18 +69,18 @@ function JobDetails() {
           toast.error('Please login to save jobs');
           return;
         }
-        
+
         // Update UI optimistically
         setSavedJobIds(prev => [...prev, job._id]);
-        
+
         // Call API to save job to user's profile
         await api.post(`/api/jobs/savejob/${job._id}/${user.id}`);
         console.log('Job saved successfully');
         toast.success('Job saved successfully');
-        
+
         // Also update local context
         saveJob(job);
-        
+
         // Refresh saved jobs to confirm update
         const savedJobsResponse = await api.get(`/api/users/${user.id}/savedJobs`);
         if (savedJobsResponse.data && savedJobsResponse.data.savedJobs) {
@@ -96,22 +99,22 @@ function JobDetails() {
 
   const handleApplyJob = async () => {
     setIsApplying(true);
-    
+
     try {
       // Get user and token from localStorage
       const user = JSON.parse(localStorage.getItem('user'));
       const token = localStorage.getItem('token');
-      
+
       // Track the application via API if user is authenticated
       if (user && user.id && token && job) {
         await api.post(`/api/jobs/${job._id}/apply`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
-      
+
       // Update UI state
       markJobAsApplied(id);
-      
+
       // Open application URL in new tab
       if (job?.applyLink) {
         window.open(job.applyLink, '_blank');
@@ -125,6 +128,44 @@ function JobDetails() {
     } finally {
       setIsApplying(false);
     }
+  };
+
+  const handleSetReminder = async () => {
+    if (!reminderDate) {
+      toast.error('Please select a date for the reminder');
+      return;
+    }
+
+    try {
+      setIsSettingReminder(true);
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        toast.error('Please login to set reminders');
+        return;
+      }
+
+      const response = await api.post('/api/reminders/setreminder', {
+        job_id: job._id,
+        user_id: user.id,
+        date: reminderDate
+      });
+      console.log(response)
+
+      if (response.status === 201) {
+        toast.success('Reminder set successfully!');
+        setShowReminderModal(false);
+        setReminderDate('');
+      }
+    } catch (error) {
+      console.error('Error setting reminder:', error);
+      toast.error('Failed to set reminder. Please try again.');
+    } finally {
+      setIsSettingReminder(false);
+    }
+  };
+
+  const handleStartMockInterview = () => {
+    navigate(`/mock-interview/${id}`);
   };
 
   if (loading) {
@@ -142,7 +183,7 @@ function JobDetails() {
               <div className="h-20 w-20 bg-white/30 dark:bg-white/10 rounded-full"></div>
             </div>
           </div>
-          
+
           {/* Content skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-8">
@@ -200,7 +241,7 @@ function JobDetails() {
           </div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Job Not Found</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-8">The job you're looking for doesn't exist or has been removed.</p>
-          <Link 
+          <Link
             to="/jobs"
             className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
           >
@@ -217,7 +258,7 @@ function JobDetails() {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="container mx-auto px-4 py-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -229,7 +270,7 @@ function JobDetails() {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-800 opacity-90"></div>
               <div className="absolute inset-0 flex items-center justify-between px-8">
                 <div className="text-white max-w-2xl">
-                  <motion.h1 
+                  <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
@@ -237,7 +278,7 @@ function JobDetails() {
                   >
                     {job?.title}
                   </motion.h1>
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
@@ -268,9 +309,9 @@ function JobDetails() {
                   className="bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg"
                 >
                   {job?.companyDetails.logo ? (
-                    <img 
-                      src={job?.companyDetails.logo} 
-                      alt={`${job.company} logo`} 
+                    <img
+                      src={job?.companyDetails.logo}
+                      alt={`${job.company} logo`}
                       className="w-20 h-20 object-contain rounded-full"
                     />
                   ) : (
@@ -284,11 +325,11 @@ function JobDetails() {
               </div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Left Column - Main Content */}
             <div className="md:col-span-2 space-y-8">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
@@ -297,31 +338,28 @@ function JobDetails() {
                 <div className="flex bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                   <button
                     onClick={() => setActiveTab('description')}
-                    className={`px-6 py-4 font-medium transition-colors ${
-                      activeTab === 'description'
-                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
+                    className={`px-6 py-4 font-medium transition-colors ${activeTab === 'description'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                      }`}
                   >
                     Description
                   </button>
                   <button
                     onClick={() => setActiveTab('requirements')}
-                    className={`px-6 py-4 font-medium transition-colors ${
-                      activeTab === 'requirements'
-                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
+                    className={`px-6 py-4 font-medium transition-colors ${activeTab === 'requirements'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                      }`}
                   >
                     Requirements
                   </button>
                   <button
                     onClick={() => setActiveTab('company')}
-                    className={`px-6 py-4 font-medium transition-colors ${
-                      activeTab === 'company'
-                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
+                    className={`px-6 py-4 font-medium transition-colors ${activeTab === 'company'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                      }`}
                   >
                     Company
                   </button>
@@ -372,7 +410,7 @@ function JobDetails() {
                         ) : (
                           <p className="text-gray-600 dark:text-gray-400">No specific skills listed for this position.</p>
                         )}
-                        
+
                         {job?.jobDetails?.experience && (
                           <div className="mt-6">
                             <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Experience</h4>
@@ -394,9 +432,9 @@ function JobDetails() {
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">About {job?.company}</h3>
                         <div className="flex items-center space-x-4 mb-4">
                           {job?.companyLogo ? (
-                            <img 
-                              src={job.companyLogo} 
-                              alt={`${job.company} logo`} 
+                            <img
+                              src={job.companyLogo}
+                              alt={`${job.company} logo`}
                               className="w-16 h-16 object-contain rounded-lg"
                             />
                           ) : (
@@ -421,7 +459,7 @@ function JobDetails() {
                             )}
                           </div>
                         </div>
-                        
+
                         {job?.companyDetails?.about ? (
                           <p className="text-gray-600 dark:text-gray-300">{job.companyDetails.about}</p>
                         ) : (
@@ -433,10 +471,10 @@ function JobDetails() {
                 </div>
               </motion.div>
             </div>
-            
+
             {/* Right Column - Job Details */}
             <div className="space-y-8">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
@@ -445,13 +483,13 @@ function JobDetails() {
                 <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-b dark:border-gray-600">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Job Details</h3>
                 </div>
-                
+
                 <div className="p-6 space-y-6">
                   {/* Key Details Section */}
                   <div className="space-y-4">
                     {/* Employment Type */}
                     {job?.jobDetails?.employmentType && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
@@ -468,10 +506,10 @@ function JobDetails() {
                         </div>
                       </motion.div>
                     )}
-                    
+
                     {/* Salary */}
                     {job?.jobDetails?.salary && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6 }}
@@ -488,10 +526,10 @@ function JobDetails() {
                         </div>
                       </motion.div>
                     )}
-                    
+
                     {/* Posted Date */}
                     {job?.jobDetails?.postedDate && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 }}
@@ -508,10 +546,10 @@ function JobDetails() {
                         </div>
                       </motion.div>
                     )}
-                    
+
                     {/* Applicants */}
                     {job?.jobDetails?.applicants && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8 }}
@@ -529,7 +567,7 @@ function JobDetails() {
                       </motion.div>
                     )}
                   </div>
-                  
+
                   {/* Source Info */}
                   <div className="border-t dark:border-gray-600 pt-4">
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -551,11 +589,10 @@ function JobDetails() {
                       transition={{ delay: 0.9 }}
                       onClick={handleApplyJob}
                       disabled={isJobApplied || isApplying}
-                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all ${
-                        isJobApplied || isApplying
-                          ? 'bg-green-600 text-white cursor-not-allowed'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
-                      }`}
+                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all ${isJobApplied || isApplying
+                        ? 'bg-green-600 text-white cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
+                        }`}
                     >
                       {isApplying ? (
                         <>
@@ -576,24 +613,42 @@ function JobDetails() {
                         'Apply Now'
                       )}
                     </motion.button>
-                    
+
                     <motion.button
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1 }}
                       onClick={handleSaveJob}
                       disabled={isJobSaved}
-                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all ${
-                        isJobSaved 
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600 cursor-not-allowed' 
-                          : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow transform hover:-translate-y-0.5'
-                      }`}
+                      className={`w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all ${isJobSaved
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow transform hover:-translate-y-0.5'
+                        }`}
                     >
                       <svg className={`w-5 h-5 mr-2 ${isJobSaved ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} fill={isJobSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
                       {isJobSaved ? 'Saved' : 'Save Job'}
                     </motion.button>
+
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.1 }}
+                      onClick={() => setShowReminderModal(true)}
+                      className="w-full px-6 py-3 rounded-lg font-medium flex items-center justify-center transition-all bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-800/30 hover:shadow transform hover:-translate-y-0.5"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Set Reminder
+                    </motion.button>
+
+                <button 
+            onClick={handleStartMockInterview}
+            className="bg-blue-600 text-white w-full px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                Start Mock Interview
+              </button>
                     
                     {/* {job?.applyLink && (
                       <a 
@@ -610,8 +665,69 @@ function JobDetails() {
               </motion.div>
             </div>
           </div>
+          {/* <button 
+            onClick={handleStartMockInterview}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Start Mock Interview
+          </button> */}
         </motion.div>
       </div>
+
+      {/* Reminder Modal */}
+      <AnimatePresence>
+        {showReminderModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4"
+            >
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Set Job Reminder</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">Select a date to be reminded about this job application.</p>
+
+              <div className="mb-4">
+                <label htmlFor="reminderDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Reminder Date
+                </label>
+                <input
+                  type="date"
+                  id="reminderDate"
+                  value={reminderDate}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowReminderModal(false)}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSetReminder}
+                  disabled={isSettingReminder || !reminderDate}
+                  className={`px-4 py-2 rounded-lg font-medium ${isSettingReminder || !reminderDate
+                    ? 'bg-purple-300 dark:bg-purple-800 text-purple-500 dark:text-purple-400 cursor-not-allowed'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                    }`}
+                >
+                  {isSettingReminder ? 'Setting...' : 'Set Reminder'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
